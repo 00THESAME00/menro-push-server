@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "172648164282",
+    "project_id": "menro-msg",
+    "storage_bucket": "menro-msg.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:172648164282:android:ba9d1e017297e1b1d58b83",
+        "android_client_info": {
+          "package_name": "com.example.manro_msg"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKD8IASGfXlguWTbg0CQbjfrnhRHld8RA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
