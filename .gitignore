@@ -46,4 +46,4 @@ app.*.map.json
 
 
 
-service-account.json
+firebase-admin.json
