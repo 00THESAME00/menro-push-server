@@ -2,14 +2,10 @@ const express = require("express");
 const admin = require("firebase-admin");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const path = require("path");
-
-// 🔑 Замените на свой путь и имя JSON-файла из Firebase
-const serviceAccount = require(path.join(__dirname, "service-account.json"));
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  projectId: "menro-msg"
+  credential: admin.credential.applicationDefault(),
+  projectId: "menro-msg",
 });
 
 const app = express();
@@ -21,7 +17,7 @@ app.post("/send-push", async (req, res) => {
 
   if (!token || !title || !body) {
     return res.status(400).json({
-      error: "Missing fields: token, title or body"
+      error: "❌ Missing fields: token, title or body",
     });
   }
 
@@ -29,7 +25,9 @@ app.post("/send-push", async (req, res) => {
     const message = {
       token,
       notification: { title, body },
-      data: { click_action: "FLUTTER_NOTIFICATION_CLICK" }
+      data: {
+        click_action: "FLUTTER_NOTIFICATION_CLICK",
+      },
     };
 
     const response = await admin.messaging().send(message);
