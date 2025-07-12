@@ -1,29 +1,45 @@
-const admin = require('firebase-admin');
+const express = require("express");
+const admin = require("firebase-admin");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+const path = require("path");
 
-// 🔑 Заменить путь на твой JSON файл из Firebase
-const serviceAccount = require('./service-account.json');
+// 🔑 Замените на свой путь и имя JSON-файла из Firebase
+const serviceAccount = require(path.join(__dirname, "service-account.json"));
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
+  projectId: "menro-msg"
 });
 
-const token = 'FCM_ТОКЕН_ПОЛУЧАТЕЛЯ';
-const message = {
-  notification: {
-    title: '💬 Сообщение от Менро',
-    body: 'Привет, как дела?',
-  },
-  data: {
-    senderId: '123456',
-    click_action: 'FLUTTER_NOTIFICATION_CLICK',
-  },
-  token: token,
-};
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
 
-admin.messaging().send(message)
-  .then((response) => {
-    console.log('✅ Уведомление отправлено:', response);
-  })
-  .catch((error) => {
-    console.error('❌ Ошибка при отправке:', error);
-  });
+app.post("/send-push", async (req, res) => {
+  const { token, title, body } = req.body;
+
+  if (!token || !title || !body) {
+    return res.status(400).json({
+      error: "Missing fields: token, title or body"
+    });
+  }
+
+  try {
+    const message = {
+      token,
+      notification: { title, body },
+      data: { click_action: "FLUTTER_NOTIFICATION_CLICK" }
+    };
+
+    const response = await admin.messaging().send(message);
+    console.log("✅ Push sent:", response);
+    return res.json({ success: true, id: response });
+  } catch (error) {
+    console.error("❌ Firebase Push Error:", error);
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🔥 Push Server running on port ${PORT}`));
