@@ -8,23 +8,21 @@ import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+
+
 class ChatService {
   final _db = FirebaseFirestore.instance;
 
-  // 💬 Отправка сообщения + push
+  // 💬 Отправка сообщения + автоматический push
   Future<void> sendMessage({
     required String senderId,
     required String receiverId,
     required String text,
   }) async {
-    print("📤 Отправка сообщения от $senderId к $receiverId: $text");
+    print("📤 Отправка от $senderId → $receiverId: $text");
 
     final chatId = _getChatId(senderId, receiverId);
-    final doc = _db
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .doc();
+    final doc = _db.collection('chats').doc(chatId).collection('messages').doc();
 
     final msg = Message(
       text: text,
@@ -34,60 +32,56 @@ class ChatService {
     );
 
     await doc.set(msg.toJson());
-    print("✅ Сообщение сохранено в чат $chatId");
+    print("✅ Сообщение добавлено в чат $chatId");
 
     await _createChatEntry(senderId, receiverId);
     await _createChatEntry(receiverId, senderId);
-    print("📋 Чат обновлён для обоих пользователей");
+    print("📁 Чат обновлён для обоих");
 
     final receiverDoc = await _db.collection('users').doc(receiverId).get();
     final token = receiverDoc.data()?['fcmToken'];
 
     if (token != null && token.toString().isNotEmpty) {
-      print("📲 Найден FCM токен: $token");
+      print("📲 FCM токен найден: $token");
       await _sendPushNotification(token, senderId, text);
     } else {
-      print("⚠️ Токен отсутствует или пустой — push не отправлен");
+      print("⚠️ Push не отправлен — токен отсутствует");
     }
   }
 
-  // 📡 Запрос на Render push-сервер
-  Future<void> _sendPushNotification(
-      String token, String senderId, String message) async {
+  // 🚀 Push-сообщение через Render-сервер
+  Future<void> _sendPushNotification(String token, String senderId, String message) async {
     final url = Uri.parse('https://menro-server.onrender.com/send-push');
 
     try {
-      print("🚀 Отправка PUSH через Render...");
+      print("🔔 Отправка push...");
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'token': token,
-          'title': '💬 Сообщение от $senderId',
-          'body': message,
+          'title': senderId,      // без скобок и префикса
+          'body': message,        // чистый текст
         }),
       );
 
       print("📦 Render статус: ${response.statusCode}");
-      print("📦 Render ответ: ${response.body}");
+      print("📨 Render ответ: ${response.body}");
     } catch (e) {
-      print("❌ Ошибка при отправке через Render: $e");
+      print("❌ Ошибка push-запроса: $e");
     }
   }
 
-  // 📥 Стрим сообщений
+  // 📡 Стрим сообщений
   Stream<List<Message>> getMessagesStream(String user1, String user2) {
     final chatId = _getChatId(user1, user2);
-
     return _db
         .collection('chats')
         .doc(chatId)
         .collection('messages')
         .orderBy('timestamp')
         .snapshots()
-        .map((snap) => snap.docs
-            .map((d) => Message.fromJson(d.data()))
-            .toList());
+        .map((snap) => snap.docs.map((d) => Message.fromJson(d.data())).toList());
   }
 
   // 📝 Чат в Firestore
@@ -121,7 +115,7 @@ class ChatService {
             }).toList());
   }
 
-  // 🔑 Chat ID генератор
+  // 🧠 ID чата
   String _getChatId(String id1, String id2) {
     final sorted = [id1, id2]..sort();
     return '${sorted[0]}_${sorted[1]}';
