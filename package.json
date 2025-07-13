@@ -1,21 +1,20 @@
 {
+  "name": "manro_msg",
+  "version": "1.0.0",
+  "description": "Push server for Menro Flutter app",
+  "main": "sendPush.js",
+  "scripts": {
+    "start": "node sendPush.js"
+  },
   "dependencies": {
     "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
     "express": "^5.1.0",
     "firebase-admin": "^13.4.0"
   },
-  "name": "manro_msg",
-  "version": "1.0.0",
-  "description": "A new Flutter project.",
-  "main": "sendPush.js",
-  "directories": {
-    "lib": "lib",
-    "test": "test"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }
