@@ -162,6 +162,33 @@ class ChatService {
     final sorted = [id1, id2]..sort();
     return '${sorted[0]}_${sorted[1]}';
   }
+
+  // 🗑️ Удаление чата у себя
+  Future<void> deleteChatLocally(String ownerId, String peerId) async {
+    print("🗑️ Удаляем чат у $ownerId → $peerId");
+
+    final userDoc = _db.collection('users').doc(ownerId);
+    final chatDoc = userDoc.collection('chatList').doc(peerId);
+
+    await chatDoc.delete();
+    print("✅ Чат $peerId удалён из списка $ownerId");
+  }
+
+  // 🧹 Очистка всех сообщений в чате
+  Future<void> clearChatMessages(String user1, String user2) async {
+    final chatId = _getChatId(user1, user2);
+    final messagesRef = _db.collection('chats').doc(chatId).collection('messages');
+
+    final batch = _db.batch();
+    final snap = await messagesRef.get();
+
+    for (var doc in snap.docs) {
+      batch.delete(doc.reference);
+    }
+
+    await batch.commit();
+    print("🧹 Все сообщения в чате $chatId удалены");
+  }
 }
 
 
@@ -577,6 +604,65 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
+  void _showChatMenu(ChatEntry chat) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.black87,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) {
+        return Padding(
+          padding: const EdgeInsets.all(24),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              TextButton(
+                onPressed: () async {
+                  // Удалить чат у себя
+                  // await ChatService().deleteChat(chat.id); // добавить реализацию
+                  Navigator.pop(context);
+                },
+                child: const Text('🗑️', style: TextStyle(fontSize: 26)),
+              ),
+              TextButton(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AddFriendFlow(currentUserId: widget.currentUserId),
+                    ),
+                  );
+                  if (result is ChatEntry) {
+                    setState(() {}); // Обновить, если имя изменено
+                  }
+                },
+                child: const Text('✏️', style: TextStyle(fontSize: 26)),
+              ),
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert, color: Colors.white),
+                itemBuilder: (ctx) => [
+                  const PopupMenuItem(
+                    value: 'clear',
+                    child: Text('🧹 Очистить чат'),
+                  ),
+                ],
+                onSelected: (value) async {
+                  if (value == 'clear') {
+                    // Очистить чат (сообщения у обоих)
+                    // await ChatService().clearMessages(chat.id); // реализовать позже
+                    Navigator.pop(context);
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -615,15 +701,19 @@ class _ChatListScreenState extends State<ChatListScreen> {
             itemBuilder: (_, index) {
               final chat = chats[index];
               final label = chat.name?.isNotEmpty == true ? chat.name! : chat.id;
-              return ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                onPressed: () => _openChat(chat),
-                child: Text(
-                  label,
-                  style: const TextStyle(fontSize: 18, color: Colors.white),
+
+              return GestureDetector(
+                onLongPress: () => _showChatMenu(chat),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  onPressed: () => _openChat(chat),
+                  child: Text(
+                    label,
+                    style: const TextStyle(fontSize: 18, color: Colors.white),
+                  ),
                 ),
               );
             },
