@@ -7,7 +7,45 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
+
+class Global {
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+  // 🔔 Обработка пуша
+  static void handlePushMessage(RemoteMessage message, {required bool fromTap}) {
+    final senderId = message.notification?.title ?? message.data['senderId'];
+    final text = message.notification?.body ?? message.data['text'];
+
+    print('🔔 PUSH: $senderId → $text');
+
+    if (fromTap && senderId != null) {
+      navigatorKey.currentState?.push(MaterialPageRoute(
+        builder: (_) => ChatScreen(
+          chat: ChatEntry(id: senderId, name: null),
+          currentUserId: senderId, // 🔹 можно заменить на сохранённый ID
+        ),
+      ));
+    }
+  }
+
+  // 🧠 Инициализация Firebase Messaging
+  static Future<void> initFirebaseMessaging() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    await messaging.requestPermission();
+    final token = await messaging.getToken();
+    print("📲 Получен FCM токен: $token");
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      handlePushMessage(message, fromTap: false);
+    });
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      handlePushMessage(message, fromTap: true);
+    });
+  }
+}
 
 
 class ChatService {
@@ -488,7 +526,6 @@ class ChatListScreen extends StatefulWidget {
   State<ChatListScreen> createState() => _ChatListScreenState();
 }
 
-
 class _ChatListScreenState extends State<ChatListScreen> {
   late final Stream<List<ChatEntry>> _chatStream;
 
@@ -519,9 +556,15 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
 
     if (result is ChatEntry) {
-      // чат автоматически сохранится при отправке сообщения
       _openChat(result);
     }
+  }
+
+  void _goToLogin() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const EnterYourIdScreen()),
+    );
   }
 
   @override
@@ -529,8 +572,24 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[900],
       appBar: AppBar(
-        title: Text('Чаты (${widget.currentUserId})'),
         backgroundColor: Colors.black,
+        title: Text('Чаты (${widget.currentUserId})'),
+        automaticallyImplyLeading: false,
+        leading: GestureDetector(
+          onTap: _goToLogin,
+          child: Container(
+            alignment: Alignment.center,
+            padding: const EdgeInsets.only(left: 16),
+            child: const Text(
+              '<',
+              style: TextStyle(
+                fontSize: 28,
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
       ),
       body: StreamBuilder<List<ChatEntry>>(
         stream: _chatStream,
@@ -580,7 +639,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 }
-
 
 // 4. Основной экран добавления друга
 class AddFriendScreen extends StatefulWidget {
