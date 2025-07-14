@@ -573,23 +573,13 @@ class _ChatListScreenState extends State<ChatListScreen> {
       backgroundColor: Colors.grey[900],
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: Text('Чаты (${widget.currentUserId})'),
         automaticallyImplyLeading: false,
-        leading: GestureDetector(
-          onTap: _goToLogin,
-          child: Container(
-            alignment: Alignment.center,
-            padding: const EdgeInsets.only(left: 16),
-            child: const Text(
-              '<',
-              style: TextStyle(
-                fontSize: 28,
-                color: Colors.white,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 22, color: Colors.white),
+          onPressed: _goToLogin,
+          tooltip: 'Назад',
         ),
+        title: Text('Чаты (${widget.currentUserId})'),
       ),
       body: StreamBuilder<List<ChatEntry>>(
         stream: _chatStream,
