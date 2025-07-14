@@ -260,6 +260,13 @@ class MyApp extends StatelessWidget {
   }
 }
 
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  await Global.initFirebaseMessaging(); // 🔔 подключаем обработку push
+  runApp(const MyApp());
+}
+
 // 1. Welcome Screen
 
 class WelcomeScreen extends StatelessWidget {
