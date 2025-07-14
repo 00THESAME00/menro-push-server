@@ -56,6 +56,7 @@ class ChatService {
     required String senderId,
     required String receiverId,
     required String text,
+    String? receiverName, // ✅ имя собеседника (если есть)
   }) async {
     print("📤 Отправка от $senderId → $receiverId: $text");
 
@@ -72,10 +73,12 @@ class ChatService {
     await doc.set(msg.toJson());
     print("✅ Сообщение добавлено в чат $chatId");
 
-    await _createChatEntry(senderId, receiverId);
+    // 👥 Создаём запись чата у отправителя и получателя
+    await _createChatEntry(senderId, receiverId, name: receiverName);
     await _createChatEntry(receiverId, senderId);
     print("📁 Чат обновлён для обоих");
 
+    // 🔔 Получение push-токена собеседника
     final receiverDoc = await _db.collection('users').doc(receiverId).get();
     final token = receiverDoc.data()?['fcmToken'];
 
@@ -98,8 +101,8 @@ class ChatService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'token': token,
-          'title': senderId,      // без скобок и префикса
-          'body': message,        // чистый текст
+          'title': senderId,
+          'body': message,
         }),
       );
 
@@ -110,7 +113,7 @@ class ChatService {
     }
   }
 
-  // 📡 Стрим сообщений
+  // 📡 Стрим сообщений между двумя юзерами
   Stream<List<Message>> getMessagesStream(String user1, String user2) {
     final chatId = _getChatId(user1, user2);
     return _db
@@ -122,8 +125,8 @@ class ChatService {
         .map((snap) => snap.docs.map((d) => Message.fromJson(d.data())).toList());
   }
 
-  // 📝 Чат в Firestore
-  Future<void> _createChatEntry(String ownerId, String peerId) async {
+  // 📝 Создание записи чата в Firestore
+  Future<void> _createChatEntry(String ownerId, String peerId, {String? name}) async {
     final userDoc = _db.collection('users').doc(ownerId);
     final chatDoc = userDoc.collection('chatList').doc(peerId);
 
@@ -131,12 +134,13 @@ class ChatService {
     if (!exists.exists) {
       await chatDoc.set({
         'peerId': peerId,
+        'name': name,
         'createdAt': FieldValue.serverTimestamp(),
       });
     }
   }
 
-  // 📄 Список чатов
+  // 📄 Получение списка чатов
   Stream<List<ChatEntry>> getUserChats(String userId) {
     return _db
         .collection('users')
@@ -148,17 +152,18 @@ class ChatService {
               final data = doc.data();
               return ChatEntry(
                 id: data['peerId'],
-                name: null,
+                name: data['name'], // ✅ отображаем имя
               );
             }).toList());
   }
 
-  // 🧠 ID чата
+  // 🧠 Генерация ID чата
   String _getChatId(String id1, String id2) {
     final sorted = [id1, id2]..sort();
     return '${sorted[0]}_${sorted[1]}';
   }
 }
+
 
 class ChatEntry {
   final String id;
@@ -166,19 +171,19 @@ class ChatEntry {
 
   ChatEntry({required this.id, this.name});
 
-  // JSON-сериализация
+  // 🔁 JSON-сериализация
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
+        'peerId': id,
+        if (name != null) 'name': name,
       };
 
-  // Обратная десериализация
+  // 🔄 Десериализация из Firestore
   factory ChatEntry.fromJson(Map<String, dynamic> json) => ChatEntry(
-        id: json['id'],
+        id: json['peerId'] ?? json['id'] ?? 'unknown',
         name: json['name'],
       );
 
-  // Метод для копирования с изменениями
+  // 🧱 Копирование с модификацией
   ChatEntry copyWith({String? id, String? name}) {
     return ChatEntry(
       id: id ?? this.id,
@@ -186,22 +191,20 @@ class ChatEntry {
     );
   }
 
-  // Для корректного сравнения объектов и использования в Set, Map и т.п.
+  // ⚖️ Сравнение объектов
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ChatEntry && runtimeType == other.runtimeType && id == other.id && name == other.name;
+      other is ChatEntry &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name;
 
   @override
   int get hashCode => id.hashCode ^ name.hashCode;
 }
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(const MyApp());
 
-}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -848,9 +851,19 @@ class _AddFriendFlowState extends State<AddFriendFlow> {
     }
   }
 
-  void _onFinish() {
+  Future<void> _onFinish() async {
     final id = _idController.text.trim();
     final name = _nameController.text.trim();
+
+    if (!_isFormatValid || !_userExists) return;
+
+    // 💬 Отправляем приветственное сообщение и сохраняем имя
+    await ChatService().sendMessage(
+      senderId: widget.currentUserId,
+      receiverId: id,
+      text: '👋',
+      receiverName: name.isNotEmpty ? name : null,
+    );
 
     final entry = ChatEntry(
       id: id,
@@ -858,6 +871,36 @@ class _AddFriendFlowState extends State<AddFriendFlow> {
     );
 
     Navigator.pop(context, entry);
+  }
+
+  Widget _buildInputField(
+    TextEditingController controller, {
+    required String hint,
+    int? maxLength,
+    TextInputType keyboardType = TextInputType.text,
+    double letterSpacing = 0,
+    void Function(String)? onChanged,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[800],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: TextField(
+        controller: controller,
+        maxLength: maxLength,
+        keyboardType: keyboardType,
+        onChanged: onChanged,
+        style: TextStyle(color: Colors.white, letterSpacing: letterSpacing),
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          counterText: '',
+          hintText: hint,
+          hintStyle: TextStyle(color: Colors.grey, letterSpacing: letterSpacing),
+        ),
+      ),
+    );
   }
 
   @override
@@ -892,9 +935,7 @@ class _AddFriendFlowState extends State<AddFriendFlow> {
                   const Text('🔄 Проверка ID...', style: TextStyle(color: Colors.grey)),
                 if (!_checking && _isFormatValid)
                   Text(
-                    _userExists
-                        ? '✅ Профиль найден'
-                        : '❌ Такого пользователя не существует',
+                    _userExists ? '✅ Профиль найден' : '❌ Такого пользователя не существует',
                     style: TextStyle(
                       color: _userExists ? Colors.green : Colors.redAccent,
                       fontSize: 16,
@@ -910,7 +951,7 @@ class _AddFriendFlowState extends State<AddFriendFlow> {
                 const SizedBox(height: 24),
                 _buildInputField(
                   _nameController,
-                  hint: 'Например: Макс, Соня',
+                  hint: 'Например: Макс, Соня, Командир',
                   keyboardType: TextInputType.text,
                 ),
               ],
@@ -939,36 +980,6 @@ class _AddFriendFlowState extends State<AddFriendFlow> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInputField(
-    TextEditingController controller, {
-    required String hint,
-    int? maxLength,
-    TextInputType keyboardType = TextInputType.text,
-    double letterSpacing = 0,
-    void Function(String)? onChanged,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[800],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: TextField(
-        controller: controller,
-        maxLength: maxLength,
-        keyboardType: keyboardType,
-        onChanged: onChanged,
-        style: TextStyle(color: Colors.white, letterSpacing: letterSpacing),
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          counterText: '',
-          hintText: hint,
-          hintStyle: TextStyle(color: Colors.grey, letterSpacing: letterSpacing),
         ),
       ),
     );
