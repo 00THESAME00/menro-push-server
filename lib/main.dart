@@ -565,6 +565,7 @@ class ChatListScreen extends StatefulWidget {
 
 class _ChatListScreenState extends State<ChatListScreen> {
   late final Stream<List<ChatEntry>> _chatStream;
+  Timer? _longPressTimer;
 
   @override
   void initState() {
@@ -605,23 +606,20 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   void _showChatMenu(ChatEntry chat) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      backgroundColor: Colors.black87,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
       builder: (_) {
-        return Padding(
-          padding: const EdgeInsets.all(24),
-          child: Row(
+        return AlertDialog(
+          backgroundColor: Colors.grey[900],
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          content: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               TextButton(
                 onPressed: () async {
-                  // Удалить чат у себя
-                  // await ChatService().deleteChat(chat.id); // добавить реализацию
+                  await ChatService().deleteChatLocally(widget.currentUserId, chat.id);
                   Navigator.pop(context);
+                  setState(() {}); // обновляем UI
                 },
                 child: const Text('🗑️', style: TextStyle(fontSize: 26)),
               ),
@@ -635,7 +633,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                     ),
                   );
                   if (result is ChatEntry) {
-                    setState(() {}); // Обновить, если имя изменено
+                    setState(() {});
                   }
                 },
                 child: const Text('✏️', style: TextStyle(fontSize: 26)),
@@ -650,9 +648,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 ],
                 onSelected: (value) async {
                   if (value == 'clear') {
-                    // Очистить чат (сообщения у обоих)
-                    // await ChatService().clearMessages(chat.id); // реализовать позже
+                    await ChatService().clearChatMessages(widget.currentUserId, chat.id);
                     Navigator.pop(context);
+                    setState(() {});
                   }
                 },
               ),
@@ -661,6 +659,17 @@ class _ChatListScreenState extends State<ChatListScreen> {
         );
       },
     );
+  }
+
+  void _handlePress(ChatEntry chat) {
+    _longPressTimer?.cancel();
+    _longPressTimer = Timer(const Duration(milliseconds: 1200), () {
+      _showChatMenu(chat);
+    });
+  }
+
+  void _cancelPress() {
+    _longPressTimer?.cancel();
   }
 
   @override
@@ -703,7 +712,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
               final label = chat.name?.isNotEmpty == true ? chat.name! : chat.id;
 
               return GestureDetector(
-                onLongPress: () => _showChatMenu(chat),
+                onTap: () => _openChat(chat),
+                onLongPressStart: (_) => _handlePress(chat),
+                onLongPressEnd: (_) => _cancelPress(),
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
