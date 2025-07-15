@@ -563,9 +563,10 @@ class ChatListScreen extends StatefulWidget {
   State<ChatListScreen> createState() => _ChatListScreenState();
 }
 
-class _ChatListScreenState extends State<ChatListScreen> {
+class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStateMixin {
   late final Stream<List<ChatEntry>> _chatStream;
   Timer? _longPressTimer;
+  String? _selectedChatId;
 
   @override
   void initState() {
@@ -605,71 +606,45 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
-  void _showChatMenu(ChatEntry chat) {
-    showDialog(
-      context: context,
-      builder: (_) {
-        return AlertDialog(
-          backgroundColor: Colors.grey[900],
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          content: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              TextButton(
-                onPressed: () async {
-                  await ChatService().deleteChatLocally(widget.currentUserId, chat.id);
-                  Navigator.pop(context);
-                  setState(() {}); // обновляем UI
-                },
-                child: const Text('🗑️', style: TextStyle(fontSize: 26)),
-              ),
-              TextButton(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => AddFriendFlow(currentUserId: widget.currentUserId),
-                    ),
-                  );
-                  if (result is ChatEntry) {
-                    setState(() {});
-                  }
-                },
-                child: const Text('✏️', style: TextStyle(fontSize: 26)),
-              ),
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert, color: Colors.white),
-                itemBuilder: (ctx) => [
-                  const PopupMenuItem(
-                    value: 'clear',
-                    child: Text('🧹 Очистить чат'),
-                  ),
-                ],
-                onSelected: (value) async {
-                  if (value == 'clear') {
-                    await ChatService().clearChatMessages(widget.currentUserId, chat.id);
-                    Navigator.pop(context);
-                    setState(() {});
-                  }
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   void _handlePress(ChatEntry chat) {
     _longPressTimer?.cancel();
     _longPressTimer = Timer(const Duration(milliseconds: 1200), () {
-      _showChatMenu(chat);
+      setState(() {
+        _selectedChatId = chat.id;
+      });
     });
   }
 
   void _cancelPress() {
     _longPressTimer?.cancel();
+  }
+
+  void _deleteChat(ChatEntry chat) async {
+    await ChatService().deleteChatLocally(widget.currentUserId, chat.id);
+    setState(() {
+      _selectedChatId = null;
+    });
+  }
+
+  void _renameChat(ChatEntry chat) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddFriendFlow(currentUserId: widget.currentUserId),
+      ),
+    );
+    if (result is ChatEntry) {
+      setState(() {
+        _selectedChatId = null;
+      });
+    }
+  }
+
+  void _clearChat(ChatEntry chat) async {
+    await ChatService().clearChatMessages(widget.currentUserId, chat.id);
+    setState(() {
+      _selectedChatId = null;
+    });
   }
 
   @override
@@ -710,21 +685,81 @@ class _ChatListScreenState extends State<ChatListScreen> {
             itemBuilder: (_, index) {
               final chat = chats[index];
               final label = chat.name?.isNotEmpty == true ? chat.name! : chat.id;
+              final isSelected = chat.id == _selectedChatId;
 
               return GestureDetector(
                 onTap: () => _openChat(chat),
                 onLongPressStart: (_) => _handlePress(chat),
                 onLongPressEnd: (_) => _cancelPress(),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  onPressed: () => _openChat(chat),
-                  child: Text(
-                    label,
-                    style: const TextStyle(fontSize: 18, color: Colors.white),
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      onPressed: () => _openChat(chat),
+                      child: Text(
+                        label,
+                        style: const TextStyle(fontSize: 18, color: Colors.white),
+                      ),
+                    ),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      switchInCurve: Curves.easeOut,
+                      switchOutCurve: Curves.easeIn,
+                      transitionBuilder: (child, animation) {
+                        return ScaleTransition(scale: animation, child: child);
+                      },
+                      child: isSelected
+                          ? Padding(
+                              key: ValueKey('menu_${chat.id}'),
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.black,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    IconButton(
+                                      icon: const Text('🗑️', style: TextStyle(fontSize: 24)),
+                                      onPressed: () => _deleteChat(chat),
+                                      tooltip: 'Удалить чат',
+                                    ),
+                                    IconButton(
+                                      icon: const Text('✏️', style: TextStyle(fontSize: 24)),
+                                      onPressed: () => _renameChat(chat),
+                                      tooltip: 'Изменить чат',
+                                    ),
+                                    PopupMenuButton<String>(
+                                      icon: const Icon(Icons.more_vert, color: Colors.white),
+                                      itemBuilder: (_) => [
+                                        const PopupMenuItem(
+                                          value: 'clear',
+                                          child: Text('🧹 Очистить чат'),
+                                        ),
+                                        const PopupMenuItem(
+                                          value: 'soon',
+                                          child: Text('Coming soon...'),
+                                        ),
+                                      ],
+                                      onSelected: (value) {
+                                        if (value == 'clear') {
+                                          _clearChat(chat);
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                  ],
                 ),
               );
             },
