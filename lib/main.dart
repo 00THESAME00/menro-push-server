@@ -556,14 +556,13 @@ class _EnterYourIdScreenState extends State<EnterYourIdScreen> {
 
 class ChatListScreen extends StatefulWidget {
   final String currentUserId;
-
   const ChatListScreen({super.key, required this.currentUserId});
 
   @override
   State<ChatListScreen> createState() => _ChatListScreenState();
 }
 
-class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStateMixin {
+class _ChatListScreenState extends State<ChatListScreen> {
   late final Stream<List<ChatEntry>> _chatStream;
   Timer? _longPressTimer;
   String? _selectedChatId;
@@ -590,13 +589,11 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => AddFriendFlow(currentUserId: widget.currentUserId),
+        builder: (_) => AddFriendFlow(currentUserId: widget.currentUserId),
       ),
     );
 
-    if (result is ChatEntry) {
-      _openChat(result);
-    }
+    if (result is ChatEntry) _openChat(result);
   }
 
   void _goToLogin() {
@@ -609,21 +606,15 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
   void _handlePress(ChatEntry chat) {
     _longPressTimer?.cancel();
     _longPressTimer = Timer(const Duration(milliseconds: 1200), () {
-      setState(() {
-        _selectedChatId = chat.id;
-      });
+      setState(() => _selectedChatId = chat.id);
     });
   }
 
-  void _cancelPress() {
-    _longPressTimer?.cancel();
-  }
+  void _cancelPress() => _longPressTimer?.cancel();
 
   void _deleteChat(ChatEntry chat) async {
     await ChatService().deleteChatLocally(widget.currentUserId, chat.id);
-    setState(() {
-      _selectedChatId = null;
-    });
+    setState(() => _selectedChatId = null);
   }
 
   void _renameChat(ChatEntry chat) async {
@@ -633,18 +624,12 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
         builder: (_) => AddFriendFlow(currentUserId: widget.currentUserId),
       ),
     );
-    if (result is ChatEntry) {
-      setState(() {
-        _selectedChatId = null;
-      });
-    }
+    if (result is ChatEntry) setState(() => _selectedChatId = null);
   }
 
   void _clearChat(ChatEntry chat) async {
     await ChatService().clearChatMessages(widget.currentUserId, chat.id);
-    setState(() {
-      _selectedChatId = null;
-    });
+    setState(() => _selectedChatId = null);
   }
 
   @override
@@ -655,26 +640,23 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
         backgroundColor: Colors.black,
         automaticallyImplyLeading: false,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 22, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
           onPressed: _goToLogin,
-          tooltip: 'Назад',
         ),
         title: Text('Чаты (${widget.currentUserId})'),
       ),
       body: StreamBuilder<List<ChatEntry>>(
         stream: _chatStream,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting)
             return const Center(child: CircularProgressIndicator());
-          }
 
           final chats = snapshot.data ?? [];
-
           if (chats.isEmpty) {
             return const Center(
               child: Text(
                 'У тебя пока нет чатов',
-                style: TextStyle(color: Colors.white70, fontSize: 18),
+                style: TextStyle(color: Colors.white70),
               ),
             );
           }
@@ -682,88 +664,66 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
           return ListView.separated(
             padding: const EdgeInsets.all(20),
             itemCount: chats.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 14),
             itemBuilder: (_, index) {
               final chat = chats[index];
               final label = chat.name?.isNotEmpty == true ? chat.name! : chat.id;
-              final isSelected = chat.id == _selectedChatId;
+              final isSelected = _selectedChatId == chat.id;
 
               return GestureDetector(
                 onTap: () => _openChat(chat),
                 onLongPressStart: (_) => _handlePress(chat),
                 onLongPressEnd: (_) => _cancelPress(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      onPressed: () => _openChat(chat),
-                      child: Text(
-                        label,
-                        style: const TextStyle(fontSize: 18, color: Colors.white),
-                      ),
-                    ),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      switchInCurve: Curves.easeOut,
-                      switchOutCurve: Curves.easeIn,
-                      transitionBuilder: (child, animation) {
-                        return ScaleTransition(scale: animation, child: child);
-                      },
-                      child: isSelected
-                          ? Padding(
-                              key: ValueKey('menu_${chat.id}'),
-                              padding: const EdgeInsets.only(top: 8),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.black,
-                                  borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[850],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              label,
+                              style: const TextStyle(color: Colors.white, fontSize: 18),
+                            ),
+                          ),
+                          if (isSelected) ...[
+                            IconButton(
+                              icon: const Text('🗑️', style: TextStyle(fontSize: 20)),
+                              onPressed: () => _deleteChat(chat),
+                            ),
+                            IconButton(
+                              icon: const Text('✏️', style: TextStyle(fontSize: 20)),
+                              onPressed: () => _renameChat(chat),
+                            ),
+                            PopupMenuButton<String>(
+                              icon: const Icon(Icons.more_vert, color: Colors.white),
+                              color: Colors.grey[800],
+                              itemBuilder: (_) => const [
+                                PopupMenuItem(
+                                  value: 'clear',
+                                  child: Text('🧹 Очистить чат'),
                                 ),
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    IconButton(
-                                      icon: const Text('🗑️', style: TextStyle(fontSize: 24)),
-                                      onPressed: () => _deleteChat(chat),
-                                      tooltip: 'Удалить чат',
-                                    ),
-                                    IconButton(
-                                      icon: const Text('✏️', style: TextStyle(fontSize: 24)),
-                                      onPressed: () => _renameChat(chat),
-                                      tooltip: 'Изменить чат',
-                                    ),
-                                    PopupMenuButton<String>(
-                                      icon: const Icon(Icons.more_vert, color: Colors.white),
-                                      itemBuilder: (_) => [
-                                        const PopupMenuItem(
-                                          value: 'clear',
-                                          child: Text('🧹 Очистить чат'),
-                                        ),
-                                        const PopupMenuItem(
-                                          value: 'soon',
-                                          child: Text('Coming soon...'),
-                                        ),
-                                      ],
-                                      onSelected: (value) {
-                                        if (value == 'clear') {
-                                          _clearChat(chat);
-                                        }
-                                      },
-                                    ),
-                                  ],
+                                PopupMenuItem(
+                                  value: 'soon',
+                                  child: Text('Coming soon...'),
                                 ),
-                              ),
-                            )
-                          : const SizedBox.shrink(),
-                    ),
-                  ],
+                              ],
+                              onSelected: (value) {
+                                if (value == 'clear') _clearChat(chat);
+                              },
+                            ),
+                          ]
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
           );
         },
       ),
