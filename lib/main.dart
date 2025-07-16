@@ -630,135 +630,125 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[900],
-      body: Stack(
+      body: Column(
         children: [
-          Column(
-            children: [
-              AppBar(
-                backgroundColor: Colors.black,
-                automaticallyImplyLeading: false,
-                leading: IconButton(
-                  icon: Icon(
-                    _selectedChat != null ? Icons.close : Icons.arrow_back_ios_new,
-                    color: Colors.white,
-                  ),
-                  onPressed: _selectedChat != null
-                      ? () => setState(() => _selectedChat = null)
-                      : _goToLogin,
-                ),
-                title: Text('Чаты (${widget.currentUserId})'),
-              ),
-              Expanded(
-                child: StreamBuilder<List<ChatEntry>>(
-                  stream: _chatStream,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting)
-                      return const Center(child: CircularProgressIndicator());
-
-                    final chats = snapshot.data ?? [];
-                    if (chats.isEmpty) {
-                      return const Center(
-                        child: Text('У тебя пока нет чатов',
-                            style: TextStyle(color: Colors.white70)),
-                      );
-                    }
-
-                    return ListView.separated(
-                      padding: const EdgeInsets.all(20),
-                      itemCount: chats.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 14),
-                      itemBuilder: (_, index) {
-                        final chat = chats[index];
-                        final label = chat.name?.isNotEmpty == true ? chat.name! : chat.id;
-
-                        return GestureDetector(
-                          onTap: () => _openChat(chat),
-                          onLongPressStart: (_) => _handlePress(chat),
-                          onLongPressEnd: (_) => _cancelPress(),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[850],
-                              borderRadius: BorderRadius.circular(10),
+          PreferredSize(
+            preferredSize: const Size.fromHeight(68),
+            child: Container(
+              color: Colors.black,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          _selectedChat != null ? Icons.close : Icons.arrow_back_ios_new,
+                          color: Colors.white,
+                        ),
+                        onPressed: _selectedChat != null
+                            ? () => setState(() => _selectedChat = null)
+                            : _goToLogin,
+                      ),
+                      Expanded(
+                        child: Text('Чаты (${widget.currentUserId})',
+                            style: const TextStyle(color: Colors.white)),
+                      ),
+                      if (_selectedChat != null)
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit_outlined, color: Colors.white),
+                              onPressed: _renameChat,
                             ),
-                            child: Row(
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline, color: Colors.white),
+                              onPressed: _deleteChat,
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.more_vert, color: Colors.white),
+                              onPressed: () => setState(() => _isSubMenuOpen = !_isSubMenuOpen),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                    child: _isSubMenuOpen
+                        ? Container(
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Expanded(
-                                  child: Text(label,
-                                      style: const TextStyle(color: Colors.white, fontSize: 18)),
+                                TextButton(
+                                  onPressed: _clearChat,
+                                  child: const Text('🧹 Очистить чат',
+                                      style: TextStyle(color: Colors.white)),
+                                ),
+                                const TextButton(
+                                  onPressed: null,
+                                  child: Text('⏳ Coming soon...',
+                                      style: TextStyle(color: Colors.white38)),
                                 ),
                               ],
                             ),
-                          ),
-                        );
-                      },
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Expanded(
+            child: StreamBuilder<List<ChatEntry>>(
+              stream: _chatStream,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting)
+                  return const Center(child: CircularProgressIndicator());
+
+                final chats = snapshot.data ?? [];
+                if (chats.isEmpty) {
+                  return const Center(
+                    child: Text('У тебя пока нет чатов',
+                        style: TextStyle(color: Colors.white70)),
+                  );
+                }
+
+                return ListView.separated(
+                  padding: const EdgeInsets.all(20),
+                  itemCount: chats.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 14),
+                  itemBuilder: (_, index) {
+                    final chat = chats[index];
+                    final label = chat.name?.isNotEmpty == true ? chat.name! : chat.id;
+
+                    return GestureDetector(
+                      onTap: () => _openChat(chat),
+                      onLongPressStart: (_) => _handlePress(chat),
+                      onLongPressEnd: (_) => _cancelPress(),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[850],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(label,
+                                  style: const TextStyle(color: Colors.white, fontSize: 18)),
+                            ),
+                          ],
+                        ),
+                      ),
                     );
                   },
-                ),
-              ),
-            ],
-          ),
-
-          // Верхняя панель действий
-          AnimatedSlide(
-            offset: _selectedChat != null ? const Offset(0, 0) : const Offset(0, -1),
-            duration: const Duration(milliseconds: 300),
-            child: _selectedChat == null
-                ? const SizedBox.shrink()
-                : Container(
-                    height: 68,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.85),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.push_pin_outlined, color: Colors.white),
-                          onPressed: () {}, // заглушка
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.volume_off_outlined, color: Colors.white),
-                          onPressed: () {}, // заглушка
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline, color: Colors.white),
-                          onPressed: _deleteChat,
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.more_vert, color: Colors.white),
-                          onPressed: () => setState(() => _isSubMenuOpen = !_isSubMenuOpen),
-                        ),
-                      ],
-                    ),
-                  ),
-          ),
-
-          // Подменю из ⋮
-          Positioned(
-            top: 68,
-            right: 12,
-            child: AnimatedSize(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeInOut,
-              child: _isSubMenuOpen
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          onPressed: _clearChat,
-                          child: const Text('🧹 Очистить чат',
-                              style: TextStyle(color: Colors.white)),
-                        ),
-                        const TextButton(
-                          onPressed: null,
-                          child: Text('⏳ Coming soon...',
-                              style: TextStyle(color: Colors.white38)),
-                        ),
-                      ],
-                    )
-                  : const SizedBox.shrink(),
+                );
+              },
             ),
           ),
         ],
