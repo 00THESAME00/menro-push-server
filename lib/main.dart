@@ -600,7 +600,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
 
   void _handlePress(ChatEntry chat) {
     _longPressTimer?.cancel();
-    _longPressTimer = Timer(const Duration(milliseconds: 1200), () {
+    _longPressTimer = Timer(const Duration(milliseconds: 1000), () {
       setState(() {
         _selectedChat = chat;
         _isSubMenuOpen = false;
@@ -617,7 +617,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
   }
 
   void _renameChat() {
-    setState(() => _selectedChat = null); // заглушка пока
+    setState(() => _selectedChat = null); // заглушка
   }
 
   void _clearChat() async {
@@ -630,136 +630,132 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[900],
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        automaticallyImplyLeading: false,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-          onPressed: _goToLogin,
-        ),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Чаты (${widget.currentUserId})'),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              child: _selectedChat != null
-                  ? IconButton(
-                      key: const ValueKey('close'),
-                      icon: const Icon(Icons.close, color: Colors.white),
-                      onPressed: () => setState(() => _selectedChat = null),
-                    )
-                  : IconButton(
-                      key: const ValueKey('arrow'),
-                      icon: const Icon(Icons.arrow_forward_ios, color: Colors.white),
-                      onPressed: () {
-                        // логика стрелки, если понадобится
-                      },
-                    ),
-            )
-          ],
-        ),
-      ),
       body: Stack(
         children: [
-          StreamBuilder<List<ChatEntry>>(
-            stream: _chatStream,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
+          Column(
+            children: [
+              AppBar(
+                backgroundColor: Colors.black,
+                automaticallyImplyLeading: false,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                  onPressed: _goToLogin,
+                ),
+                title: Text('Чаты (${widget.currentUserId})'),
+                actions: [
+                  if (_selectedChat != null)
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      onPressed: () => setState(() => _selectedChat = null),
+                    ),
+                ],
+              ),
+              Expanded(
+                child: StreamBuilder<List<ChatEntry>>(
+                  stream: _chatStream,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting)
+                      return const Center(child: CircularProgressIndicator());
 
-              final chats = snapshot.data ?? [];
-              if (chats.isEmpty) {
-                return const Center(
-                  child: Text('У тебя пока нет чатов',
-                      style: TextStyle(color: Colors.white70)),
-                );
-              }
+                    final chats = snapshot.data ?? [];
+                    if (chats.isEmpty) {
+                      return const Center(
+                        child: Text('У тебя пока нет чатов',
+                            style: TextStyle(color: Colors.white70)),
+                      );
+                    }
 
-              return ListView.separated(
-                padding: const EdgeInsets.all(20),
-                itemCount: chats.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 14),
-                itemBuilder: (_, index) {
-                  final chat = chats[index];
-                  final label = chat.name?.isNotEmpty == true ? chat.name! : chat.id;
+                    return ListView.separated(
+                      padding: const EdgeInsets.all(20),
+                      itemCount: chats.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 14),
+                      itemBuilder: (_, index) {
+                        final chat = chats[index];
+                        final label = chat.name?.isNotEmpty == true ? chat.name! : chat.id;
 
-                  return GestureDetector(
-                    onTap: () => _openChat(chat),
-                    onLongPressStart: (_) => _handlePress(chat),
-                    onLongPressEnd: (_) => _cancelPress(),
-                    child: Container(
+                        return GestureDetector(
+                          onTap: () => _openChat(chat),
+                          onLongPressStart: (_) => _handlePress(chat),
+                          onLongPressEnd: (_) => _cancelPress(),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[850],
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(label,
+                                      style: const TextStyle(color: Colors.white, fontSize: 18)),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+          Positioned(
+            top: 0,
+            right: 0,
+            left: 0,
+            child: AnimatedSlide(
+              offset: _selectedChat != null ? const Offset(0, 0) : const Offset(0, -1),
+              duration: const Duration(milliseconds: 300),
+              child: _selectedChat == null
+                  ? const SizedBox.shrink()
+                  : Container(
+                      margin: const EdgeInsets.only(top: kToolbarHeight),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        color: Colors.grey[850],
-                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.black.withOpacity(0.85),
+                        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(14)),
                       ),
-                      child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Expanded(
-                            child: Text(label,
-                                style: const TextStyle(color: Colors.white, fontSize: 18)),
+                          IconButton(
+                            icon: const Icon(Icons.delete_forever, color: Colors.white),
+                            onPressed: _deleteChat,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.edit_note, color: Colors.white),
+                            onPressed: _renameChat,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.more_vert, color: Colors.white),
+                            onPressed: () => setState(() => _isSubMenuOpen = !_isSubMenuOpen),
+                          ),
+                          AnimatedSize(
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeInOut,
+                            child: _isSubMenuOpen
+                                ? Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      TextButton(
+                                        onPressed: _clearChat,
+                                        child: const Text('🧹 Очистить чат',
+                                            style: TextStyle(color: Colors.white)),
+                                      ),
+                                      const TextButton(
+                                        onPressed: null,
+                                        child: Text('⏳ Coming soon...',
+                                            style: TextStyle(color: Colors.white38)),
+                                      ),
+                                    ],
+                                  )
+                                : const SizedBox.shrink(),
                           ),
                         ],
                       ),
                     ),
-                  );
-                },
-              );
-            },
-          ),
-          AnimatedSlide(
-            offset: _selectedChat != null ? const Offset(0, 0) : const Offset(0, -1),
-            duration: const Duration(milliseconds: 300),
-            child: _selectedChat == null
-                ? const SizedBox.shrink()
-                : Container(
-                    margin: const EdgeInsets.only(top: 56),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.85),
-                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(14)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.delete_forever, color: Colors.white),
-                          onPressed: _deleteChat,
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.edit_note, color: Colors.white),
-                          onPressed: _renameChat,
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.more_vert, color: Colors.white),
-                          onPressed: () => setState(() => _isSubMenuOpen = !_isSubMenuOpen),
-                        ),
-                        AnimatedSize(
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.easeInOut,
-                          child: _isSubMenuOpen
-                              ? Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    TextButton(
-                                      onPressed: _clearChat,
-                                      child: const Text('🧹 Очистить чат',
-                                          style: TextStyle(color: Colors.white)),
-                                    ),
-                                    const TextButton(
-                                      onPressed: null,
-                                      child: Text('⏳ Coming soon...',
-                                          style: TextStyle(color: Colors.white38)),
-                                    ),
-                                  ],
-                                )
-                              : const SizedBox.shrink(),
-                        ),
-                      ],
-                    ),
-                  ),
+            ),
           ),
         ],
       ),
