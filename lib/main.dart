@@ -562,10 +562,11 @@ class ChatListScreen extends StatefulWidget {
   State<ChatListScreen> createState() => _ChatListScreenState();
 }
 
-class _ChatListScreenState extends State<ChatListScreen> {
+class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStateMixin {
   late final Stream<List<ChatEntry>> _chatStream;
   Timer? _longPressTimer;
   String? _selectedChatId;
+  bool _isSubMenuOpen = false;
 
   @override
   void initState() {
@@ -577,10 +578,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ChatScreen(
-          chat: chat,
-          currentUserId: widget.currentUserId,
-        ),
+        builder: (_) => ChatScreen(chat: chat, currentUserId: widget.currentUserId),
       ),
     );
   }
@@ -592,7 +590,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
         builder: (_) => AddFriendFlow(currentUserId: widget.currentUserId),
       ),
     );
-
     if (result is ChatEntry) _openChat(result);
   }
 
@@ -606,7 +603,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
   void _handlePress(ChatEntry chat) {
     _longPressTimer?.cancel();
     _longPressTimer = Timer(const Duration(milliseconds: 1200), () {
-      setState(() => _selectedChatId = chat.id);
+      setState(() {
+        _selectedChatId = chat.id;
+        _isSubMenuOpen = false;
+      });
     });
   }
 
@@ -617,14 +617,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
     setState(() => _selectedChatId = null);
   }
 
-  void _renameChat(ChatEntry chat) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AddFriendFlow(currentUserId: widget.currentUserId),
-      ),
-    );
-    if (result is ChatEntry) setState(() => _selectedChatId = null);
+  void _renameChat(ChatEntry chat) {
+    setState(() => _selectedChatId = null); // заглушка пока
   }
 
   void _clearChat(ChatEntry chat) async {
@@ -654,8 +648,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           final chats = snapshot.data ?? [];
           if (chats.isEmpty) {
             return const Center(
-              child: Text(
-                'У тебя пока нет чатов',
+              child: Text('У тебя пока нет чатов',
                 style: TextStyle(color: Colors.white70),
               ),
             );
@@ -674,15 +667,15 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 onTap: () => _openChat(chat),
                 onLongPressStart: (_) => _handlePress(chat),
                 onLongPressEnd: (_) => _cancelPress(),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[850],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
+                child: Stack(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[850],
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
                         children: [
                           Expanded(
                             child: Text(
@@ -690,37 +683,68 @@ class _ChatListScreenState extends State<ChatListScreen> {
                               style: const TextStyle(color: Colors.white, fontSize: 18),
                             ),
                           ),
-                          if (isSelected) ...[
-                            IconButton(
-                              icon: const Text('🗑️', style: TextStyle(fontSize: 20)),
-                              onPressed: () => _deleteChat(chat),
-                            ),
-                            IconButton(
-                              icon: const Text('✏️', style: TextStyle(fontSize: 20)),
-                              onPressed: () => _renameChat(chat),
-                            ),
-                            PopupMenuButton<String>(
-                              icon: const Icon(Icons.more_vert, color: Colors.white),
-                              color: Colors.grey[800],
-                              itemBuilder: (_) => const [
-                                PopupMenuItem(
-                                  value: 'clear',
-                                  child: Text('🧹 Очистить чат'),
-                                ),
-                                PopupMenuItem(
-                                  value: 'soon',
-                                  child: Text('Coming soon...'),
-                                ),
-                              ],
-                              onSelected: (value) {
-                                if (value == 'clear') _clearChat(chat);
-                              },
-                            ),
-                          ]
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                    if (isSelected)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.65),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_outline, color: Colors.white),
+                                    onPressed: () => _deleteChat(chat),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.edit_outlined, color: Colors.white),
+                                    onPressed: () => _renameChat(chat),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.more_vert, color: Colors.white),
+                                    onPressed: () {
+                                      setState(() => _isSubMenuOpen = !_isSubMenuOpen);
+                                    },
+                                  ),
+                                ],
+                              ),
+                              AnimatedSize(
+                                duration: const Duration(milliseconds: 250),
+                                curve: Curves.easeInOut,
+                                child: _isSubMenuOpen
+                                    ? Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        children: [
+                                          TextButton(
+                                            onPressed: () => _clearChat(chat),
+                                            child: const Text('🧹 Очистить чат',
+                                              style: TextStyle(color: Colors.white),
+                                            ),
+                                          ),
+                                          const TextButton(
+                                            onPressed: null,
+                                            child: Text('⏳ Coming soon...',
+                                              style: TextStyle(color: Colors.white38),
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : const SizedBox.shrink(),
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               );
             },
