@@ -640,9 +640,8 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
       body: StreamBuilder<List<ChatEntry>>(
         stream: _chatStream,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting)
             return const Center(child: CircularProgressIndicator());
-          }
 
           final chats = snapshot.data ?? [];
           if (chats.isEmpty) {
@@ -695,54 +694,47 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.delete_forever, color: Colors.white),
-                                    onPressed: () => _deleteChat(chat),
-                                    tooltip: 'Удалить чат',
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.edit_note, color: Colors.white),
-                                    onPressed: () => _renameChat(chat),
-                                    tooltip: 'Изменить контакт',
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.more_horiz, color: Colors.white),
-                                    onPressed: () {
-                                      setState(() => _isSubMenuOpen = !_isSubMenuOpen);
-                                    },
-                                  ),
-                                ],
+                              IconButton(
+                                icon: const Icon(Icons.delete_forever, color: Colors.white),
+                                onPressed: () => _deleteChat(chat),
+                                tooltip: 'Удалить чат',
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.edit_note, color: Colors.white),
+                                onPressed: () => _renameChat(chat),
+                                tooltip: 'Изменить контакт',
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.more_vert, color: Colors.white),
+                                onPressed: () {
+                                  setState(() => _isSubMenuOpen = !_isSubMenuOpen);
+                                },
                               ),
                               AnimatedSize(
                                 duration: const Duration(milliseconds: 250),
                                 curve: Curves.easeInOut,
                                 child: _isSubMenuOpen
-                                    ? Padding(
-                                        padding: const EdgeInsets.only(top: 8),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.end,
-                                          children: [
-                                            TextButton(
-                                              onPressed: () => _clearChat(chat),
-                                              child: const Text('🧹 Очистить чат',
-                                                style: TextStyle(color: Colors.white),
-                                              ),
+                                    ? Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        children: [
+                                          TextButton(
+                                            onPressed: () => _clearChat(chat),
+                                            child: const Text('🧹 Очистить чат',
+                                              style: TextStyle(color: Colors.white),
                                             ),
-                                            const TextButton(
-                                              onPressed: null,
-                                              child: Text('⏳ Coming soon...',
-                                                style: TextStyle(color: Colors.white38),
-                                              ),
+                                          ),
+                                          const TextButton(
+                                            onPressed: null,
+                                            child: Text('⏳ Coming soon...',
+                                              style: TextStyle(color: Colors.white38),
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       )
                                     : const SizedBox.shrink(),
-                              ),
+                              )
                             ],
                           ),
                         ),
