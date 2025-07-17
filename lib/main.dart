@@ -631,10 +631,9 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
     return Scaffold(
       backgroundColor: Colors.grey[900],
 
-      // 1) Компактная и “выше” шапка
       appBar: AppBar(
         backgroundColor: Colors.black,
-        toolbarHeight: 72, // было 80/86 → стало 72
+        toolbarHeight: 64, // стало ещё компактнее
         leading: AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
           child: IconButton(
@@ -643,7 +642,9 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
               _selectedChat != null ? Icons.close : Icons.arrow_back_ios_new,
               color: Colors.white,
             ),
-            onPressed: _selectedChat != null ? () => setState(() => _selectedChat = null) : _goToLogin,
+            onPressed: _selectedChat != null 
+                ? () => setState(() => _selectedChat = null) 
+                : _goToLogin,
           ),
         ),
         title: Text(
@@ -678,11 +679,17 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
                     children: [
                       TextButton(
                         onPressed: _clearChat,
-                        child: const Text('🧹 Очистить чат', style: TextStyle(color: Colors.white)),
+                        child: const Text(
+                          '🧹 Очистить чат', 
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                       const TextButton(
                         onPressed: null,
-                        child: Text('⏳ Coming soon...', style: TextStyle(color: Colors.white38)),
+                        child: Text(
+                          '⏳ Coming soon...', 
+                          style: TextStyle(color: Colors.white38),
+                        ),
                       ),
                     ],
                   ),
@@ -691,7 +698,6 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
             : null,
       ),
 
-      // 2) Список с небольшим приподъемом чатов
       body: StreamBuilder<List<ChatEntry>>(
         stream: _chatStream,
         builder: (context, snapshot) {
@@ -702,12 +708,15 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
           final chats = snapshot.data ?? [];
           if (chats.isEmpty) {
             return const Center(
-              child: Text('У тебя пока нет чатов', style: TextStyle(color: Colors.white70)),
+              child: Text(
+                'У тебя пока нет чатов',
+                style: TextStyle(color: Colors.white70),
+              ),
             );
           }
 
           return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20), // подняли на 12px под шапкой
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20), // чаты ближе к шапке
             itemCount: chats.length,
             separatorBuilder: (_, __) => const SizedBox(height: 14),
             itemBuilder: (_, index) {
