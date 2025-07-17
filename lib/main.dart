@@ -638,7 +638,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
               top: true,
               child: Container(
                 color: Colors.black,
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 6),
+                padding: const EdgeInsets.fromLTRB(20, 56, 20, 20), // ← поднимал чаты выше
                 child: Column(
                   children: [
                     Row(
