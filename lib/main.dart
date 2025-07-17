@@ -638,7 +638,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
               top: true,
               child: Container(
                 color: Colors.black,
-                padding: const EdgeInsets.fromLTRB(20, 56, 20, 20), // ← поднимал чаты выше
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 6),
                 child: Column(
                   children: [
                     Row(
@@ -727,7 +727,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
                 }
 
                 return ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(20, 32, 20, 20),
+                  padding: const EdgeInsets.fromLTRB(20, 56, 20, 20), // ← поднимал чаты выше
                   itemCount: chats.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 14),
                   itemBuilder: (_, index) {
