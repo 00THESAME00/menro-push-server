@@ -631,14 +631,13 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
     return Scaffold(
       backgroundColor: Colors.grey[900],
 
-      // Уменьшили фон шапки до 68px по высоте
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(68),
         child: SafeArea(
           top: true,
           child: Container(
             color: Colors.black,
-            padding: const EdgeInsets.fromLTRB(12, 16, 12, 6), // top:16 вместо 20
+            padding: const EdgeInsets.fromLTRB(12, 16, 12, 6),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -715,7 +714,6 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
         ),
       ),
 
-      // Вернули списку отступ top = 8
       body: StreamBuilder<List<ChatEntry>>(
         stream: _chatStream,
         builder: (context, snapshot) {
@@ -731,7 +729,8 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
           }
 
           return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 20), // top:4 вместо 8, чтобы чаты чуть выше
+            // увеличили нижний отступ с 20 до 24 пикселя
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
             itemCount: chats.length,
             separatorBuilder: (_, __) => const SizedBox(height: 14),
             itemBuilder: (_, index) {
