@@ -633,7 +633,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
       body: Column(
         children: [
           PreferredSize(
-            preferredSize: const Size.fromHeight(92),
+            preferredSize: const Size.fromHeight(90),
             child: SafeArea(
               top: true,
               child: Container(
@@ -644,14 +644,20 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        IconButton(
-                          icon: Icon(
-                            _selectedChat != null ? Icons.close : Icons.arrow_back_ios_new,
-                            color: Colors.white,
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 250),
+                          child: IconButton(
+                            key: ValueKey(_selectedChat != null),
+                            icon: Icon(
+                              _selectedChat != null
+                                  ? Icons.close
+                                  : Icons.arrow_back_ios_new,
+                              color: Colors.white,
+                            ),
+                            onPressed: _selectedChat != null
+                                ? () => setState(() => _selectedChat = null)
+                                : _goToLogin,
                           ),
-                          onPressed: _selectedChat != null
-                              ? () => setState(() => _selectedChat = null)
-                              : _goToLogin,
                         ),
                         Expanded(
                           child: Text('Чаты (${widget.currentUserId})',
@@ -721,7 +727,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
                 }
 
                 return ListView.separated(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.fromLTRB(20, 26, 20, 20),
                   itemCount: chats.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 14),
                   itemBuilder: (_, index) {
