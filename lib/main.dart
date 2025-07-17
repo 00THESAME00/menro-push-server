@@ -633,73 +633,75 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
       body: Column(
         children: [
           PreferredSize(
-            preferredSize: const Size.fromHeight(68),
-            child: Container(
-              color: Colors.black,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          _selectedChat != null ? Icons.close : Icons.arrow_back_ios_new,
-                          color: Colors.white,
+            preferredSize: const Size.fromHeight(92),
+            child: SafeArea(
+              top: true,
+              child: Container(
+                color: Colors.black,
+                padding: const EdgeInsets.fromLTRB(12, 14, 12, 8),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            _selectedChat != null ? Icons.close : Icons.arrow_back_ios_new,
+                            color: Colors.white,
+                          ),
+                          onPressed: _selectedChat != null
+                              ? () => setState(() => _selectedChat = null)
+                              : _goToLogin,
                         ),
-                        onPressed: _selectedChat != null
-                            ? () => setState(() => _selectedChat = null)
-                            : _goToLogin,
-                      ),
-                      Expanded(
-                        child: Text('Чаты (${widget.currentUserId})',
-                            style: const TextStyle(color: Colors.white)),
-                      ),
-                      if (_selectedChat != null)
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit_outlined, color: Colors.white),
-                              onPressed: _renameChat,
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete_outline, color: Colors.white),
-                              onPressed: _deleteChat,
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.more_vert, color: Colors.white),
-                              onPressed: () => setState(() => _isSubMenuOpen = !_isSubMenuOpen),
-                            ),
-                          ],
+                        Expanded(
+                          child: Text('Чаты (${widget.currentUserId})',
+                              style: const TextStyle(color: Colors.white, fontSize: 18)),
                         ),
-                    ],
-                  ),
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeInOut,
-                    child: _isSubMenuOpen
-                        ? Container(
-                            alignment: Alignment.centerRight,
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                TextButton(
-                                  onPressed: _clearChat,
-                                  child: const Text('🧹 Очистить чат',
-                                      style: TextStyle(color: Colors.white)),
-                                ),
-                                const TextButton(
-                                  onPressed: null,
-                                  child: Text('⏳ Coming soon...',
-                                      style: TextStyle(color: Colors.white38)),
-                                ),
-                              ],
-                            ),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                ],
+                        if (_selectedChat != null)
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit_outlined, color: Colors.white),
+                                onPressed: _renameChat,
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline, color: Colors.white),
+                                onPressed: _deleteChat,
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.more_vert, color: Colors.white),
+                                onPressed: () => setState(() => _isSubMenuOpen = !_isSubMenuOpen),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeInOut,
+                      child: _isSubMenuOpen
+                          ? Container(
+                              alignment: Alignment.centerRight,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  TextButton(
+                                    onPressed: _clearChat,
+                                    child: const Text('🧹 Очистить чат',
+                                        style: TextStyle(color: Colors.white)),
+                                  ),
+                                  const TextButton(
+                                    onPressed: null,
+                                    child: Text('⏳ Coming soon...',
+                                        style: TextStyle(color: Colors.white38)),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
