@@ -617,7 +617,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
   }
 
   void _renameChat() {
-    setState(() => _selectedChat = null);
+    setState(() => _selectedChat = null); // заглушка
   }
 
   void _clearChat() async {
@@ -631,71 +631,69 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
     return Scaffold(
       backgroundColor: Colors.grey[900],
 
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(86),
-        child: AppBar(
-          backgroundColor: Colors.black,
-          leading: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
-            child: IconButton(
-              key: ValueKey(_selectedChat != null),
-              icon: Icon(
-                _selectedChat != null ? Icons.close : Icons.arrow_back_ios_new,
-                color: Colors.white,
-              ),
-              onPressed: _selectedChat != null
-                  ? () => setState(() => _selectedChat = null)
-                  : _goToLogin,
+      // вынесли header в настоящую AppBar
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        toolbarHeight: 86,
+        leading: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          child: IconButton(
+            key: ValueKey(_selectedChat != null),
+            icon: Icon(
+              _selectedChat != null ? Icons.close : Icons.arrow_back_ios_new,
+              color: Colors.white,
             ),
+            onPressed: _selectedChat != null 
+                ? () => setState(() => _selectedChat = null) 
+                : _goToLogin,
           ),
-          title: Text(
-            'Чаты (${widget.currentUserId})',
-            style: const TextStyle(color: Colors.white, fontSize: 18),
-          ),
-          actions: _selectedChat != null
-              ? [
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, color: Colors.white),
-                    onPressed: _renameChat,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.white),
-                    onPressed: _deleteChat,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.more_vert, color: Colors.white),
-                    onPressed: () => setState(() => _isSubMenuOpen = !_isSubMenuOpen),
-                  ),
-                ]
-              : null,
-          bottom: _isSubMenuOpen
-              ? PreferredSize(
-                  preferredSize: const Size.fromHeight(48),
-                  child: Container(
-                    color: Colors.black,
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 12, bottom: 6),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          onPressed: _clearChat,
-                          child: const Text('🧹 Очистить чат',
-                              style: TextStyle(color: Colors.white)),
-                        ),
-                        const TextButton(
-                          onPressed: null,
-                          child: Text('⏳ Coming soon...',
-                              style: TextStyle(color: Colors.white38)),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : null,
         ),
+        title: Text(
+          'Чаты (${widget.currentUserId})',
+          style: const TextStyle(color: Colors.white, fontSize: 18),
+        ),
+        actions: _selectedChat != null
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined, color: Colors.white),
+                  onPressed: _renameChat,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.white),
+                  onPressed: _deleteChat,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.more_vert, color: Colors.white),
+                  onPressed: () => setState(() => _isSubMenuOpen = !_isSubMenuOpen),
+                ),
+              ]
+            : null,
+        bottom: _isSubMenuOpen
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(48),
+                child: Container(
+                  color: Colors.black,
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 12, bottom: 6),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: _clearChat,
+                        child: const Text('🧹 Очистить чат', style: TextStyle(color: Colors.white)),
+                      ),
+                      const TextButton(
+                        onPressed: null,
+                        child: Text('⏳ Coming soon...', style: TextStyle(color: Colors.white38)),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            : null,
       ),
 
+      // body — только список, с нужным отступом сверху
       body: StreamBuilder<List<ChatEntry>>(
         stream: _chatStream,
         builder: (context, snapshot) {
@@ -706,13 +704,12 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
           final chats = snapshot.data ?? [];
           if (chats.isEmpty) {
             return const Center(
-              child: Text('У тебя пока нет чатов',
-                  style: TextStyle(color: Colors.white70)),
+              child: Text('У тебя пока нет чатов', style: TextStyle(color: Colors.white70)),
             );
           }
 
           return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 20), // ← отступ 20px
             itemCount: chats.length,
             separatorBuilder: (_, __) => const SizedBox(height: 14),
             itemBuilder: (_, index) {
@@ -724,14 +721,15 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
                 onLongPressStart: (_) => _handlePress(chat),
                 onLongPressEnd: (_) => _cancelPress(),
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
                     color: Colors.grey[850],
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text(label,
-                      style: const TextStyle(color: Colors.white, fontSize: 18)),
+                  child: Text(
+                    label, 
+                    style: const TextStyle(color: Colors.white, fontSize: 18),
+                  ),
                 ),
               );
             },
