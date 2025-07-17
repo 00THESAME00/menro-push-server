@@ -711,7 +711,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
               ),
             ),
           ),
-          const SizedBox(height: 12), // ← вот этот фиксированный зазор
+          const SizedBox(height: 24), // ← увеличил отступ до чатов
           Expanded(
             child: StreamBuilder<List<ChatEntry>>(
               stream: _chatStream,
@@ -728,7 +728,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
                 }
 
                 return ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20), // ← padding.top больше не нужен
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                   itemCount: chats.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 14),
                   itemBuilder: (_, index) {
