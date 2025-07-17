@@ -617,7 +617,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
   }
 
   void _renameChat() {
-    setState(() => _selectedChat = null); // заглушка
+    setState(() => _selectedChat = null);
   }
 
   void _clearChat() async {
@@ -630,137 +630,115 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[900],
-      body: Column(
-        children: [
-          PreferredSize(
-            preferredSize: const Size.fromHeight(86),
-            child: SafeArea(
-              top: true,
-              child: Container(
-                color: Colors.black,
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 6),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(86),
+        child: AppBar(
+          backgroundColor: Colors.black,
+          leading: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            child: IconButton(
+              key: ValueKey(_selectedChat != null),
+              icon: Icon(
+                _selectedChat != null ? Icons.close : Icons.arrow_back_ios_new,
+                color: Colors.white,
+              ),
+              onPressed: _selectedChat != null
+                  ? () => setState(() => _selectedChat = null)
+                  : _goToLogin,
+            ),
+          ),
+          title: Text(
+            'Чаты (${widget.currentUserId})',
+            style: const TextStyle(color: Colors.white, fontSize: 18),
+          ),
+          actions: _selectedChat != null
+              ? [
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, color: Colors.white),
+                    onPressed: _renameChat,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, color: Colors.white),
+                    onPressed: _deleteChat,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.more_vert, color: Colors.white),
+                    onPressed: () => setState(() => _isSubMenuOpen = !_isSubMenuOpen),
+                  ),
+                ]
+              : null,
+          bottom: _isSubMenuOpen
+              ? PreferredSize(
+                  preferredSize: const Size.fromHeight(48),
+                  child: Container(
+                    color: Colors.black,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 12, bottom: 6),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 250),
-                          child: IconButton(
-                            key: ValueKey(_selectedChat != null),
-                            icon: Icon(
-                              _selectedChat != null
-                                  ? Icons.close
-                                  : Icons.arrow_back_ios_new,
-                              color: Colors.white,
-                            ),
-                            onPressed: _selectedChat != null
-                                ? () => setState(() => _selectedChat = null)
-                                : _goToLogin,
-                          ),
+                        TextButton(
+                          onPressed: _clearChat,
+                          child: const Text('🧹 Очистить чат',
+                              style: TextStyle(color: Colors.white)),
                         ),
-                        Expanded(
-                          child: Text('Чаты (${widget.currentUserId})',
-                              style: const TextStyle(color: Colors.white, fontSize: 18)),
+                        const TextButton(
+                          onPressed: null,
+                          child: Text('⏳ Coming soon...',
+                              style: TextStyle(color: Colors.white38)),
                         ),
-                        if (_selectedChat != null)
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit_outlined, color: Colors.white),
-                                onPressed: _renameChat,
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline, color: Colors.white),
-                                onPressed: _deleteChat,
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.more_vert, color: Colors.white),
-                                onPressed: () => setState(() => _isSubMenuOpen = !_isSubMenuOpen),
-                              ),
-                            ],
-                          ),
                       ],
                     ),
-                    AnimatedSize(
-                      duration: const Duration(milliseconds: 250),
-                      curve: Curves.easeInOut,
-                      child: _isSubMenuOpen
-                          ? Container(
-                              alignment: Alignment.centerRight,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  TextButton(
-                                    onPressed: _clearChat,
-                                    child: const Text('🧹 Очистить чат',
-                                        style: TextStyle(color: Colors.white)),
-                                  ),
-                                  const TextButton(
-                                    onPressed: null,
-                                    child: Text('⏳ Coming soon...',
-                                        style: TextStyle(color: Colors.white38)),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : const SizedBox.shrink(),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: StreamBuilder<List<ChatEntry>>(
-              stream: _chatStream,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting)
-                  return const Center(child: CircularProgressIndicator());
-
-                final chats = snapshot.data ?? [];
-                if (chats.isEmpty) {
-                  return const Center(
-                    child: Text('У тебя пока нет чатов',
-                        style: TextStyle(color: Colors.white70)),
-                  );
-                }
-
-                return ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(20, 68, 20, 20), // ← поднято через scroll
-                  itemCount: chats.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 14),
-                  itemBuilder: (_, index) {
-                    final chat = chats[index];
-                    final label = chat.name?.isNotEmpty == true ? chat.name! : chat.id;
-
-                    return GestureDetector(
-                      onTap: () => _openChat(chat),
-                      onLongPressStart: (_) => _handlePress(chat),
-                      onLongPressEnd: (_) => _cancelPress(),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[850],
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(label,
-                                  style: const TextStyle(color: Colors.white, fontSize: 18)),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
+                  ),
+                )
+              : null,
+        ),
       ),
+
+      body: StreamBuilder<List<ChatEntry>>(
+        stream: _chatStream,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final chats = snapshot.data ?? [];
+          if (chats.isEmpty) {
+            return const Center(
+              child: Text('У тебя пока нет чатов',
+                  style: TextStyle(color: Colors.white70)),
+            );
+          }
+
+          return ListView.separated(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+            itemCount: chats.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 14),
+            itemBuilder: (_, index) {
+              final chat = chats[index];
+              final label = chat.name?.isNotEmpty == true ? chat.name! : chat.id;
+
+              return GestureDetector(
+                onTap: () => _openChat(chat),
+                onLongPressStart: (_) => _handlePress(chat),
+                onLongPressEnd: (_) => _cancelPress(),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[850],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(label,
+                      style: const TextStyle(color: Colors.white, fontSize: 18)),
+                ),
+              );
+            },
+          );
+        },
+      ),
+
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.black,
         onPressed: _addNewChat,
