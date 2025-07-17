@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';  // ← этот импорт можно оставить, он не мешает
+// остальные твои импорты…
 import 'models/message.dart';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -7,30 +9,27 @@ import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class Global {
   static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-  // 🔔 Обработка пуша
   static void handlePushMessage(RemoteMessage message, {required bool fromTap}) {
     final senderId = message.notification?.title ?? message.data['senderId'];
     final text = message.notification?.body ?? message.data['text'];
-
     print('🔔 PUSH: $senderId → $text');
 
     if (fromTap && senderId != null) {
       navigatorKey.currentState?.push(MaterialPageRoute(
         builder: (_) => ChatScreen(
           chat: ChatEntry(id: senderId, name: null),
-          currentUserId: senderId, // 🔹 можно заменить на сохранённый ID
+          currentUserId: senderId,
         ),
       ));
     }
   }
 
-  // 🧠 Инициализация Firebase Messaging
   static Future<void> initFirebaseMessaging() async {
     FirebaseMessaging messaging = FirebaseMessaging.instance;
     await messaging.requestPermission();
@@ -40,26 +39,22 @@ class Global {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       handlePushMessage(message, fromTap: false);
     });
-
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       handlePushMessage(message, fromTap: true);
     });
   }
 }
 
-
 class ChatService {
   final _db = FirebaseFirestore.instance;
 
-  // 💬 Отправка сообщения + автоматический push
   Future<void> sendMessage({
     required String senderId,
     required String receiverId,
     required String text,
-    String? receiverName, // ✅ имя собеседника (если есть)
+    String? receiverName,
   }) async {
     print("📤 Отправка от $senderId → $receiverId: $text");
-
     final chatId = _getChatId(senderId, receiverId);
     final doc = _db.collection('chats').doc(chatId).collection('messages').doc();
 
@@ -69,19 +64,15 @@ class ChatService {
       receiverId: receiverId,
       timestamp: DateTime.now().millisecondsSinceEpoch,
     );
-
     await doc.set(msg.toJson());
     print("✅ Сообщение добавлено в чат $chatId");
 
-    // 👥 Создаём запись чата у отправителя и получателя
     await _createChatEntry(senderId, receiverId, name: receiverName);
     await _createChatEntry(receiverId, senderId);
     print("📁 Чат обновлён для обоих");
 
-    // 🔔 Получение push-токена собеседника
     final receiverDoc = await _db.collection('users').doc(receiverId).get();
     final token = receiverDoc.data()?['fcmToken'];
-
     if (token != null && token.toString().isNotEmpty) {
       print("📲 FCM токен найден: $token");
       await _sendPushNotification(token, senderId, text);
@@ -90,10 +81,8 @@ class ChatService {
     }
   }
 
-  // 🚀 Push-сообщение через Render-сервер
   Future<void> _sendPushNotification(String token, String senderId, String message) async {
     final url = Uri.parse('https://menro-server.onrender.com/send-push');
-
     try {
       print("🔔 Отправка push...");
       final response = await http.post(
@@ -105,7 +94,6 @@ class ChatService {
           'body': message,
         }),
       );
-
       print("📦 Render статус: ${response.statusCode}");
       print("📨 Render ответ: ${response.body}");
     } catch (e) {
@@ -113,7 +101,6 @@ class ChatService {
     }
   }
 
-  // 📡 Стрим сообщений между двумя юзерами
   Stream<List<Message>> getMessagesStream(String user1, String user2) {
     final chatId = _getChatId(user1, user2);
     return _db
@@ -125,7 +112,6 @@ class ChatService {
         .map((snap) => snap.docs.map((d) => Message.fromJson(d.data())).toList());
   }
 
-  // 📝 Создание записи чата в Firestore
   Future<void> _createChatEntry(String ownerId, String peerId, {String? name}) async {
     final userDoc = _db.collection('users').doc(ownerId);
     final chatDoc = userDoc.collection('chatList').doc(peerId);
@@ -140,7 +126,6 @@ class ChatService {
     }
   }
 
-  // 📄 Получение списка чатов
   Stream<List<ChatEntry>> getUserChats(String userId) {
     return _db
         .collection('users')
@@ -152,45 +137,36 @@ class ChatService {
               final data = doc.data();
               return ChatEntry(
                 id: data['peerId'],
-                name: data['name'], // ✅ отображаем имя
+                name: data['name'],
               );
             }).toList());
   }
 
-  // 🧠 Генерация ID чата
   String _getChatId(String id1, String id2) {
     final sorted = [id1, id2]..sort();
     return '${sorted[0]}_${sorted[1]}';
   }
 
-  // 🗑️ Удаление чата у себя
   Future<void> deleteChatLocally(String ownerId, String peerId) async {
     print("🗑️ Удаляем чат у $ownerId → $peerId");
-
     final userDoc = _db.collection('users').doc(ownerId);
     final chatDoc = userDoc.collection('chatList').doc(peerId);
-
     await chatDoc.delete();
     print("✅ Чат $peerId удалён из списка $ownerId");
   }
 
-  // 🧹 Очистка всех сообщений в чате
   Future<void> clearChatMessages(String user1, String user2) async {
     final chatId = _getChatId(user1, user2);
     final messagesRef = _db.collection('chats').doc(chatId).collection('messages');
-
     final batch = _db.batch();
     final snap = await messagesRef.get();
-
     for (var doc in snap.docs) {
       batch.delete(doc.reference);
     }
-
     await batch.commit();
     print("🧹 Все сообщения в чате $chatId удалены");
   }
 }
-
 
 class ChatEntry {
   final String id;
@@ -198,19 +174,16 @@ class ChatEntry {
 
   ChatEntry({required this.id, this.name});
 
-  // 🔁 JSON-сериализация
   Map<String, dynamic> toJson() => {
         'peerId': id,
         if (name != null) 'name': name,
       };
 
-  // 🔄 Десериализация из Firestore
   factory ChatEntry.fromJson(Map<String, dynamic> json) => ChatEntry(
         id: json['peerId'] ?? json['id'] ?? 'unknown',
         name: json['name'],
       );
 
-  // 🧱 Копирование с модификацией
   ChatEntry copyWith({String? id, String? name}) {
     return ChatEntry(
       id: id ?? this.id,
@@ -218,7 +191,6 @@ class ChatEntry {
     );
   }
 
-  // ⚖️ Сравнение объектов
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -230,8 +202,6 @@ class ChatEntry {
   @override
   int get hashCode => id.hashCode ^ name.hashCode;
 }
-
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -264,18 +234,7 @@ class MyApp extends StatelessWidget {
               body: Center(child: CircularProgressIndicator()),
             );
           }
-
-          if (snapshot.hasError) {
-            print("❌ Ошибка в FutureBuilder: ${snapshot.error}");
-            return const Scaffold(
-              backgroundColor: Colors.black,
-              body: Center(child: Text("Ошибка загрузки", style: TextStyle(color: Colors.red))),
-            );
-          }
-
           final savedId = snapshot.data;
-          print("📲 Переход на экран: ${savedId != null ? 'ChatListScreen' : 'WelcomeScreen'}");
-
           if (savedId != null && savedId.isNotEmpty) {
             return ChatListScreen(currentUserId: savedId);
           } else {
@@ -290,7 +249,7 @@ class MyApp extends StatelessWidget {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  await Global.initFirebaseMessaging(); // 🔔 подключаем обработку push
+  await Global.initFirebaseMessaging();
   runApp(const MyApp());
 }
 
