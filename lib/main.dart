@@ -631,15 +631,14 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
     return Scaffold(
       backgroundColor: Colors.grey[900],
 
-      // 1) Кастомная AppBar — PreferredSize + SafeArea + Container
+      // Уменьшили фон шапки до 68px по высоте
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(78),
+        preferredSize: const Size.fromHeight(68),
         child: SafeArea(
           top: true,
           child: Container(
             color: Colors.black,
-            // ← увеличиваем верхний паддинг, чтобы опустить содержимое
-            padding: const EdgeInsets.fromLTRB(12, 20, 12, 6),
+            padding: const EdgeInsets.fromLTRB(12, 16, 12, 6), // top:16 вместо 20
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -716,7 +715,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
         ),
       ),
 
-      // 2) Список чатов вернул к отступу top = 8
+      // Вернули списку отступ top = 8
       body: StreamBuilder<List<ChatEntry>>(
         stream: _chatStream,
         builder: (context, snapshot) {
@@ -732,7 +731,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
           }
 
           return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 20), // top:4 вместо 8, чтобы чаты чуть выше
             itemCount: chats.length,
             separatorBuilder: (_, __) => const SizedBox(height: 14),
             itemBuilder: (_, index) {
@@ -757,7 +756,6 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
         },
       ),
 
-      // 3) FAB остаётся без изменений
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.black,
         onPressed: _addNewChat,
