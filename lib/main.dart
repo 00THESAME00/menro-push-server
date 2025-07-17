@@ -631,10 +631,10 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
     return Scaffold(
       backgroundColor: Colors.grey[900],
 
-      // вынесли header в настоящую AppBar
+      // Шапка теперь чуть компактнее и приподнята
       appBar: AppBar(
         backgroundColor: Colors.black,
-        toolbarHeight: 86,
+        toolbarHeight: 80,     // уменьшили с 86 до 80
         leading: AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
           child: IconButton(
@@ -643,9 +643,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
               _selectedChat != null ? Icons.close : Icons.arrow_back_ios_new,
               color: Colors.white,
             ),
-            onPressed: _selectedChat != null 
-                ? () => setState(() => _selectedChat = null) 
-                : _goToLogin,
+            onPressed: _selectedChat != null ? () => setState(() => _selectedChat = null) : _goToLogin,
           ),
         ),
         title: Text(
@@ -693,7 +691,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
             : null,
       ),
 
-      // body — только список, с нужным отступом сверху
+      // Список с небольшим приподъемом чатов
       body: StreamBuilder<List<ChatEntry>>(
         stream: _chatStream,
         builder: (context, snapshot) {
@@ -709,7 +707,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
           }
 
           return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 20), // ← отступ 20px
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20), // подняли чаты ближе к шапке
             itemCount: chats.length,
             separatorBuilder: (_, __) => const SizedBox(height: 14),
             itemBuilder: (_, index) {
@@ -727,7 +725,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    label, 
+                    label,
                     style: const TextStyle(color: Colors.white, fontSize: 18),
                   ),
                 ),
