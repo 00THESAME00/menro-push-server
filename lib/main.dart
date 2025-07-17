@@ -617,7 +617,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
   }
 
   void _renameChat() {
-    setState(() => _selectedChat = null); // заглушка
+    setState(() => _selectedChat = null);
   }
 
   void _clearChat() async {
@@ -631,10 +631,10 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
     return Scaffold(
       backgroundColor: Colors.grey[900],
 
-      // Шапка теперь чуть компактнее и приподнята
+      // 1) Компактная и “выше” шапка
       appBar: AppBar(
         backgroundColor: Colors.black,
-        toolbarHeight: 80,     // уменьшили с 86 до 80
+        toolbarHeight: 72, // было 80/86 → стало 72
         leading: AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
           child: IconButton(
@@ -691,7 +691,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
             : null,
       ),
 
-      // Список с небольшим приподъемом чатов
+      // 2) Список с небольшим приподъемом чатов
       body: StreamBuilder<List<ChatEntry>>(
         stream: _chatStream,
         builder: (context, snapshot) {
@@ -707,7 +707,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
           }
 
           return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20), // подняли чаты ближе к шапке
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20), // подняли на 12px под шапкой
             itemCount: chats.length,
             separatorBuilder: (_, __) => const SizedBox(height: 14),
             itemBuilder: (_, index) {
