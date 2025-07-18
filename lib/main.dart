@@ -588,7 +588,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,  // Отключаем сдвиг при появлении Insets
+      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.grey[900],
 
       appBar: PreferredSize(
@@ -609,10 +609,14 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
                       child: IconButton(
                         key: ValueKey(_selectedChat != null),
                         icon: Icon(
-                          _selectedChat != null ? Icons.close : Icons.arrow_back_ios_new,
+                          _selectedChat != null
+                              ? Icons.close
+                              : Icons.arrow_back_ios_new,
                           color: Colors.white,
                         ),
-                        onPressed: _selectedChat != null ? () => setState(() => _selectedChat = null) : _goToLogin,
+                        onPressed: _selectedChat != null
+                            ? () => setState(() => _selectedChat = null)
+                            : _goToLogin,
                       ),
                     ),
                     Expanded(
@@ -651,11 +655,13 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
                             children: [
                               TextButton(
                                 onPressed: _clearChat,
-                                child: const Text('🧹 Очистить чат', style: TextStyle(color: Colors.white)),
+                                child: const Text('🧹 Очистить чат',
+                                    style: TextStyle(color: Colors.white)),
                               ),
                               const TextButton(
                                 onPressed: null,
-                                child: Text('⏳ Coming soon...', style: TextStyle(color: Colors.white38)),
+                                child: Text('⏳ Coming soon...',
+                                    style: TextStyle(color: Colors.white38)),
                               ),
                             ],
                           ),
@@ -677,12 +683,14 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
           final chats = snapshot.data ?? [];
           if (chats.isEmpty) {
             return const Center(
-              child: Text('У тебя пока нет чатов', style: TextStyle(color: Colors.white70)),
+              child: Text('У тебя пока нет чатов',
+                  style: TextStyle(color: Colors.white70)),
             );
           }
 
           return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+            // Здесь подняли список чуть вниз: padding.top = 8
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
             itemCount: chats.length,
             separatorBuilder: (_, __) => const SizedBox(height: 14),
             itemBuilder: (_, index) {
@@ -693,12 +701,15 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
                 onLongPressStart: (_) => _handlePress(chat),
                 onLongPressEnd: (_) => _cancelPress(),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
                     color: Colors.grey[850],
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 18)),
+                  child: Text(label,
+                      style:
+                          const TextStyle(color: Colors.white, fontSize: 18)),
                 ),
               );
             },
