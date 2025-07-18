@@ -521,7 +521,8 @@ class ChatListScreen extends StatefulWidget {
   State<ChatListScreen> createState() => _ChatListScreenState();
 }
 
-class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStateMixin {
+class _ChatListScreenState extends State<ChatListScreen>
+    with TickerProviderStateMixin {
   late final Stream<List<ChatEntry>> _chatStream;
   Timer? _longPressTimer;
   ChatEntry? _selectedChat;
@@ -537,7 +538,8 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ChatScreen(chat: chat, currentUserId: widget.currentUserId),
+        builder: (_) =>
+            ChatScreen(chat: chat, currentUserId: widget.currentUserId),
       ),
     );
   }
@@ -545,7 +547,10 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
   Future<void> _addNewChat() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => AddFriendFlow(currentUserId: widget.currentUserId)),
+      MaterialPageRoute(
+        builder: (_) =>
+            AddFriendFlow(currentUserId: widget.currentUserId),
+      ),
     );
     if (result is ChatEntry) _openChat(result);
   }
@@ -569,26 +574,22 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
 
   void _cancelPress() => _longPressTimer?.cancel();
 
+  void _deleteChat() async {
+    if (_selectedChat == null) return;
+    await ChatService()
+        .deleteChatLocally(widget.currentUserId, _selectedChat!.id);
+    setState(() => _selectedChat = null);
+  }
+
+  void _renameChat() {
+    setState(() => _selectedChat = null);
+  }
+
   void _clearChat() async {
     if (_selectedChat == null) return;
-    await ChatService().clearChatMessages(widget.currentUserId, _selectedChat!.id);
-    setState(() {
-      _selectedChat = null;
-      _isSubMenuOpen = false;
-    });
-  }
-
-  void _toggleSubMenu() {
-    setState(() {
-      _isSubMenuOpen = !_isSubMenuOpen;
-    });
-  }
-
-  void _closeAll() {
-    setState(() {
-      _selectedChat = null;
-      _isSubMenuOpen = false;
-    });
+    await ChatService()
+        .clearChatMessages(widget.currentUserId, _selectedChat!.id);
+    setState(() => _selectedChat = null);
   }
 
   @override
@@ -597,6 +598,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.grey[900],
 
+      // ---- APP BAR ----
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(68),
         child: SafeArea(
@@ -608,6 +610,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
               mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 250),
@@ -620,45 +623,65 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
                           color: Colors.white,
                         ),
                         onPressed: _selectedChat != null
-                            ? _closeAll
-                            : _goToLogin,   // ← здесь теперь и _goToLogin используется
+                            ? () => setState(() {
+                                  _selectedChat = null;
+                                  _isSubMenuOpen = false;
+                                })
+                            : _goToLogin,
                       ),
                     ),
-                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Чаты (${widget.currentUserId})',
-                        style: const TextStyle(color: Colors.white, fontSize: 18),
+                        style: const TextStyle(
+                            color: Colors.white, fontSize: 18),
                       ),
                     ),
                     if (_selectedChat != null)
                       IconButton(
-                        icon: const Icon(Icons.more_vert, color: Colors.white),
-                        onPressed: _toggleSubMenu,
+                        icon:
+                            const Icon(Icons.more_vert, color: Colors.white),
+                        onPressed: () => setState(
+                            () => _isSubMenuOpen = !_isSubMenuOpen),
                       ),
                   ],
                 ),
 
+                // ---- ПОДМЕНЮ ----
                 AnimatedSize(
                   duration: const Duration(milliseconds: 250),
                   curve: Curves.easeInOut,
-                  child: _isSubMenuOpen && _selectedChat != null
+                  child: _isSubMenuOpen
                       ? Container(
                           width: double.infinity,
                           color: Colors.black.withOpacity(0.85),
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                           child: Column(
-                            mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              ListTile(
-                                leading: const Icon(Icons.cleaning_services_outlined, color: Colors.white),
-                                title: const Text('Очистить чат', style: TextStyle(color: Colors.white)),
-                                onTap: _clearChat,
+                              TextButton.icon(
+                                onPressed: _clearChat,
+                                icon: const Icon(
+                                  Icons.cleaning_services_outlined,
+                                  color: Colors.white,
+                                ),
+                                label: const Text(
+                                  'Очистить чат',
+                                  style: TextStyle(color: Colors.white),
+                                ),
                               ),
-                              ListTile(
-                                leading: const Icon(Icons.hourglass_empty, color: Colors.white38),
-                                title: const Text('Coming soon...', style: TextStyle(color: Colors.white38)),
-                                onTap: _closeAll,
+                              TextButton.icon(
+                                onPressed: null,
+                                icon: const Icon(
+                                  Icons.hourglass_empty,
+                                  color: Colors.white38,
+                                ),
+                                label: const Text(
+                                  'Coming soon...',
+                                  style: TextStyle(color: Colors.white38),
+                                ),
                               ),
                             ],
                           ),
@@ -671,46 +694,76 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
         ),
       ),
 
+      // ---- BODY: закрываем подменю по любому тапу ----
       body: GestureDetector(
         behavior: HitTestBehavior.translucent,
-        onTap: _closeAll,
+        onTap: () {
+          if (_isSubMenuOpen) {
+            setState(() {
+              _selectedChat = null;
+              _isSubMenuOpen = false;
+            });
+          }
+        },
         child: StreamBuilder<List<ChatEntry>>(
           stream: _chatStream,
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting)
-              return const Center(child: CircularProgressIndicator());
+            if (snapshot.connectionState ==
+                ConnectionState.waiting) {
+              return const Center(
+                  child: CircularProgressIndicator());
+            }
 
             final chats = snapshot.data ?? [];
             if (chats.isEmpty) {
               return const Center(
-                child: Text('У тебя пока нет чатов', style: TextStyle(color: Colors.white70)),
+                child: Text(
+                  'У тебя пока нет чатов',
+                  style: TextStyle(color: Colors.white70),
+                ),
               );
             }
 
             return ListView.separated(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+              padding:
+                  const EdgeInsets.fromLTRB(20, 8, 20, 24),
               itemCount: chats.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 14),
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: 14),
               itemBuilder: (_, index) {
                 final chat = chats[index];
-                final label = chat.name?.isNotEmpty == true ? chat.name! : chat.id;
+                final label = chat.name?.isNotEmpty == true
+                    ? chat.name!
+                    : chat.id;
+
                 return GestureDetector(
                   onTap: () {
                     if (_isSubMenuOpen) {
-                      _closeAll();
+                      setState(() {
+                        _selectedChat = null;
+                        _isSubMenuOpen = false;
+                      });
                     } else {
                       _openChat(chat);
                     }
                   },
-                  onLongPressStart: (_) => _handlePress(chat),
+                  onLongPressStart: (_) =>
+                      _handlePress(chat),
                   onLongPressEnd: (_) => _cancelPress(),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: Colors.grey[850],
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius:
+                          BorderRadius.circular(10),
                     ),
-                    child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 18)),
+                    child: Text(
+                      label,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18),
+                    ),
                   ),
                 );
               },
@@ -722,7 +775,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.black,
         onPressed: _addNewChat,
-        child: const Icon(Icons.person_add, color: Colors.white),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
