@@ -312,7 +312,6 @@ class EnterYourIdScreen extends StatefulWidget {
   State<EnterYourIdScreen> createState() => _EnterYourIdScreenState();
 }
 
-
 class _EnterYourIdScreenState extends State<EnterYourIdScreen> {
   final _idController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -320,6 +319,7 @@ class _EnterYourIdScreenState extends State<EnterYourIdScreen> {
   String? _statusMessage;
   bool _isLoading = false;
   bool _isExistingUser = false;
+  bool _showPassword = false; // ← добавлено для показа пароля
 
   Future<void> _checkId(String id) async {
     if (id.length != 6) {
@@ -367,16 +367,12 @@ class _EnterYourIdScreenState extends State<EnterYourIdScreen> {
       });
     }
 
-    // 💾 Сохраняем ID пользователя для автологина
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('userId', id);
-
     await _saveFcmToken(id);
 
-    // 📥 Обработка входящих push-сообщений
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       final data = message.data;
-
       if (data.containsKey('text') && data.containsKey('senderId')) {
         final msg = Message(
           text: data['text'],
@@ -443,7 +439,8 @@ class _EnterYourIdScreenState extends State<EnterYourIdScreen> {
                 _buildTextField(
                   controller: _passwordController,
                   hint: 'Пароль',
-                  obscureText: true,
+                  obscureText: !_showPassword,
+                  isPassword: true,
                 ),
                 const SizedBox(height: 12),
                 if (_statusMessage != null)
@@ -471,7 +468,10 @@ class _EnterYourIdScreenState extends State<EnterYourIdScreen> {
                   child: _isLoading
                       ? const Padding(
                           padding: EdgeInsets.all(12),
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
                       : const Icon(Icons.arrow_forward, color: Colors.white),
                 ),
@@ -487,6 +487,7 @@ class _EnterYourIdScreenState extends State<EnterYourIdScreen> {
     required TextEditingController controller,
     required String hint,
     bool obscureText = false,
+    bool isPassword = false,
     TextInputType? keyboardType,
     void Function(String)? onChanged,
   }) {
@@ -506,6 +507,14 @@ class _EnterYourIdScreenState extends State<EnterYourIdScreen> {
           border: InputBorder.none,
           hintText: hint,
           hintStyle: const TextStyle(color: Colors.grey),
+          suffixIcon: isPassword
+              ? GestureDetector(
+                  onTapDown: (_) => setState(() => _showPassword = true),
+                  onTapUp: (_) => setState(() => _showPassword = false),
+                  onTapCancel: () => setState(() => _showPassword = false),
+                  child: const Icon(Icons.visibility_outlined, color: Colors.white38),
+                )
+              : null,
         ),
       ),
     );
