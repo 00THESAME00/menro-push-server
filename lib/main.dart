@@ -574,22 +574,43 @@ class _ChatListScreenState extends State<ChatListScreen>
 
   void _cancelPress() => _longPressTimer?.cancel();
 
-  void _deleteChat() async {
-    if (_selectedChat == null) return;
-    await ChatService()
-        .deleteChatLocally(widget.currentUserId, _selectedChat!.id);
-    setState(() => _selectedChat = null);
-  }
-
-  void _renameChat() {
-    setState(() => _selectedChat = null);
-  }
-
   void _clearChat() async {
     if (_selectedChat == null) return;
     await ChatService()
         .clearChatMessages(widget.currentUserId, _selectedChat!.id);
-    setState(() => _selectedChat = null);
+    setState(() {
+      _selectedChat = null;
+      _isSubMenuOpen = false;
+    });
+  }
+
+  void _deleteChat() async {
+    if (_selectedChat == null) return;
+    await ChatService()
+        .deleteChatLocally(widget.currentUserId, _selectedChat!.id);
+    setState(() {
+      _selectedChat = null;
+      _isSubMenuOpen = false;
+    });
+  }
+
+  void _renameChat() {
+    // твоя логика переименования
+    setState(() {
+      _selectedChat = null;
+      _isSubMenuOpen = false;
+    });
+  }
+
+  void _toggleSubMenu() {
+    setState(() => _isSubMenuOpen = !_isSubMenuOpen);
+  }
+
+  void _closeAll() {
+    setState(() {
+      _selectedChat = null;
+      _isSubMenuOpen = false;
+    });
   }
 
   @override
@@ -598,7 +619,6 @@ class _ChatListScreenState extends State<ChatListScreen>
       resizeToAvoidBottomInset: false,
       backgroundColor: Colors.grey[900],
 
-      // ---- APP BAR ----
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(68),
         child: SafeArea(
@@ -610,7 +630,6 @@ class _ChatListScreenState extends State<ChatListScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 250),
@@ -623,67 +642,76 @@ class _ChatListScreenState extends State<ChatListScreen>
                           color: Colors.white,
                         ),
                         onPressed: _selectedChat != null
-                            ? () => setState(() {
-                                  _selectedChat = null;
-                                  _isSubMenuOpen = false;
-                                })
+                            ? _closeAll
                             : _goToLogin,
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Чаты (${widget.currentUserId})',
-                        style: const TextStyle(
-                            color: Colors.white, fontSize: 18),
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 18),
                       ),
                     ),
                     if (_selectedChat != null)
-                      IconButton(
-                        icon:
-                            const Icon(Icons.more_vert, color: Colors.white),
-                        onPressed: () => setState(
-                            () => _isSubMenuOpen = !_isSubMenuOpen),
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit_outlined,
+                                color: Colors.white),
+                            onPressed: _renameChat,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline,
+                                color: Colors.white),
+                            onPressed: _deleteChat,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.more_vert,
+                                color: Colors.white),
+                            onPressed: _toggleSubMenu,
+                          ),
+                        ],
                       ),
                   ],
                 ),
 
-                // ---- ПОДМЕНЮ ----
+                // ПОДМЕНЮ: узкое, не на всю ширину
                 AnimatedSize(
                   duration: const Duration(milliseconds: 250),
                   curve: Curves.easeInOut,
-                  child: _isSubMenuOpen
-                      ? Container(
-                          width: double.infinity,
-                          color: Colors.black.withOpacity(0.85),
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TextButton.icon(
-                                onPressed: _clearChat,
-                                icon: const Icon(
-                                  Icons.cleaning_services_outlined,
-                                  color: Colors.white,
+                  child: _isSubMenuOpen && _selectedChat != null
+                      ? Align(
+                          alignment: Alignment.topRight,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.85),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 12),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                TextButton.icon(
+                                  onPressed: _clearChat,
+                                  icon: const Icon(Icons.cleaning_services_outlined,
+                                      color: Colors.white),
+                                  label: const Text('Очистить чат',
+                                      style: TextStyle(color: Colors.white)),
                                 ),
-                                label: const Text(
-                                  'Очистить чат',
-                                  style: TextStyle(color: Colors.white),
+                                TextButton.icon(
+                                  onPressed: null,
+                                  icon: const Icon(Icons.hourglass_bottom_outlined,
+                                      color: Colors.white38),
+                                  label: const Text('Coming soon...',
+                                      style:
+                                          TextStyle(color: Colors.white38)),
                                 ),
-                              ),
-                              TextButton.icon(
-                                onPressed: null,
-                                icon: const Icon(
-                                  Icons.hourglass_empty,
-                                  color: Colors.white38,
-                                ),
-                                label: const Text(
-                                  'Coming soon...',
-                                  style: TextStyle(color: Colors.white38),
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         )
                       : const SizedBox.shrink(),
@@ -694,76 +722,54 @@ class _ChatListScreenState extends State<ChatListScreen>
         ),
       ),
 
-      // ---- BODY: закрываем подменю по любому тапу ----
       body: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: () {
-          if (_isSubMenuOpen) {
-            setState(() {
-              _selectedChat = null;
-              _isSubMenuOpen = false;
-            });
-          }
+          if (_isSubMenuOpen) _closeAll();
         },
         child: StreamBuilder<List<ChatEntry>>(
           stream: _chatStream,
           builder: (context, snapshot) {
-            if (snapshot.connectionState ==
-                ConnectionState.waiting) {
-              return const Center(
-                  child: CircularProgressIndicator());
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
             }
 
             final chats = snapshot.data ?? [];
             if (chats.isEmpty) {
               return const Center(
-                child: Text(
-                  'У тебя пока нет чатов',
-                  style: TextStyle(color: Colors.white70),
-                ),
+                child: Text('У тебя пока нет чатов',
+                    style: TextStyle(color: Colors.white70)),
               );
             }
 
             return ListView.separated(
-              padding:
-                  const EdgeInsets.fromLTRB(20, 8, 20, 24),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
               itemCount: chats.length,
-              separatorBuilder: (_, __) =>
-                  const SizedBox(height: 14),
+              separatorBuilder: (_, __) => const SizedBox(height: 14),
               itemBuilder: (_, index) {
                 final chat = chats[index];
-                final label = chat.name?.isNotEmpty == true
-                    ? chat.name!
-                    : chat.id;
-
+                final label =
+                    chat.name?.isNotEmpty == true ? chat.name! : chat.id;
                 return GestureDetector(
                   onTap: () {
                     if (_isSubMenuOpen) {
-                      setState(() {
-                        _selectedChat = null;
-                        _isSubMenuOpen = false;
-                      });
+                      _closeAll();
                     } else {
                       _openChat(chat);
                     }
                   },
-                  onLongPressStart: (_) =>
-                      _handlePress(chat),
+                  onLongPressStart: (_) => _handlePress(chat),
                   onLongPressEnd: (_) => _cancelPress(),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: Colors.grey[850],
-                      borderRadius:
-                          BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Text(
-                      label,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18),
-                    ),
+                    child: Text(label,
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 18)),
                   ),
                 );
               },
