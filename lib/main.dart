@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';  // ← этот импорт можно оставить, он не мешает
-// остальные твои импорты…
 import 'models/message.dart';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -603,12 +602,29 @@ class _ChatListScreenState extends State<ChatListScreen>
     });
   }
 
-  void _renameChat() {
-    // твоя логика переименования
+  void _renameChat() async {
+    final chatToEdit = _selectedChat;
     setState(() {
       _selectedChat = null;
       _isSubMenuOpen = false;
     });
+
+    if (chatToEdit != null) {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => RenameChatScreen(
+            currentUserId: widget.currentUserId,
+            peerId: chatToEdit.id,
+            currentName: chatToEdit.name,
+          ),
+        ),
+      );
+
+      if (result is String) {
+        print("✅ Имя обновлено: $result");
+      }
+    }
   }
 
   void _toggleSubMenu() {
@@ -716,8 +732,7 @@ class _ChatListScreenState extends State<ChatListScreen>
                                   icon: const Icon(Icons.hourglass_bottom_outlined,
                                       color: Colors.white38),
                                   label: const Text('Coming soon...',
-                                      style:
-                                          TextStyle(color: Colors.white38)),
+                                      style: TextStyle(color: Colors.white38)),
                                 ),
                               ],
                             ),
@@ -791,6 +806,132 @@ class _ChatListScreenState extends State<ChatListScreen>
         backgroundColor: Colors.black,
         onPressed: _addNewChat,
         child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+}
+
+
+// Изменить чат
+
+class RenameChatScreen extends StatefulWidget {
+  final String currentUserId;
+  final String peerId;
+  final String? currentName;
+
+  const RenameChatScreen({
+    super.key,
+    required this.currentUserId,
+    required this.peerId,
+    this.currentName,
+  });
+
+  @override
+  State<RenameChatScreen> createState() => _RenameChatScreenState();
+}
+
+class _RenameChatScreenState extends State<RenameChatScreen> {
+  late final TextEditingController _nameController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.currentName ?? '');
+  }
+
+  Future<void> _saveName() async {
+    final name = _nameController.text.trim();
+
+    // 💾 Обновляем имя у себя
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.currentUserId)
+        .collection('chatList')
+        .doc(widget.peerId)
+        .update({'name': name});
+
+    // 🔁 Обновляем имя у друга — чтобы он видел нас по имени
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.peerId)
+        .collection('chatList')
+        .doc(widget.currentUserId)
+        .update({'name': widget.currentName ?? widget.currentUserId});
+
+    Navigator.pop(context, name);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[900],
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text('Изменить', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.black,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 64),
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Код друга', style: TextStyle(fontSize: 20, color: Colors.white)),
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[800],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(widget.peerId, style: const TextStyle(color: Colors.white, fontSize: 18)),
+                ),
+                const SizedBox(height: 32),
+                const Text('Имя друга', style: TextStyle(fontSize: 20, color: Colors.white)),
+                const SizedBox(height: 16),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[800],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: TextField(
+                    controller: _nameController,
+                    maxLength: 15,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      counterText: '',
+                      hintText: 'Например: Макс, Соня, Командир',
+                      hintStyle: TextStyle(color: Colors.grey),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Positioned(
+              bottom: 30,
+              right: 30,
+              child: GestureDetector(
+                onTap: _saveName,
+                child: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: const BoxDecoration(
+                    color: Colors.black,
+                    shape: BoxShape.rectangle,
+                  ),
+                  child: const Icon(Icons.arrow_forward, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
