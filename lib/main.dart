@@ -814,7 +814,7 @@ class _ChatListScreenState extends State<ChatListScreen>
 
 // Изменить чат
 
-class RenameChatScreen extends StatefulWidget {
+cclass RenameChatScreen extends StatefulWidget {
   final String currentUserId;
   final String peerId;
   final String? currentName;
@@ -842,7 +842,6 @@ class _RenameChatScreenState extends State<RenameChatScreen> {
   Future<void> _saveName() async {
     final name = _nameController.text.trim();
 
-    // 💾 Обновляем имя у себя
     await FirebaseFirestore.instance
         .collection('users')
         .doc(widget.currentUserId)
@@ -850,7 +849,6 @@ class _RenameChatScreenState extends State<RenameChatScreen> {
         .doc(widget.peerId)
         .update({'name': name});
 
-    // 🔁 Обновляем имя у друга — чтобы он видел нас по имени
     await FirebaseFirestore.instance
         .collection('users')
         .doc(widget.peerId)
@@ -889,8 +887,11 @@ class _RenameChatScreenState extends State<RenameChatScreen> {
                     color: Colors.grey[800],
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(widget.peerId, style: const TextStyle(color: Colors.white, fontSize: 18)),
+                  child: Text(widget.peerId, style: const TextStyle(color: Colors.white70, fontSize: 18)),
                 ),
+                const SizedBox(height: 6),
+                const Text('🔒 Код друга (нельзя изменить)', style: TextStyle(color: Colors.grey, fontSize: 14)),
+
                 const SizedBox(height: 32),
                 const Text('Имя друга', style: TextStyle(fontSize: 20, color: Colors.white)),
                 const SizedBox(height: 16),
