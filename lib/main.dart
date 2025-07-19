@@ -814,7 +814,7 @@ class _ChatListScreenState extends State<ChatListScreen>
 
 // Изменить чат
 
-cclass RenameChatScreen extends StatefulWidget {
+class RenameChatScreen extends StatefulWidget {
   final String currentUserId;
   final String peerId;
   final String? currentName;
