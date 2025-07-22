@@ -853,7 +853,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       body: SafeArea(
         child: Stack(
           children: [
-            // 🔙 Назад
             Positioned(
               top: 12,
               left: 12,
@@ -862,8 +861,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 onPressed: () => Navigator.pop(context),
               ),
             ),
-
-            // ⁝ Меню
             Positioned(
               top: 12,
               right: 52,
@@ -900,8 +897,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 },
               ),
             ),
-
-            // ✏️ Редактировать
             Positioned(
               top: 12,
               right: 12,
@@ -915,16 +910,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 },
               ),
             ),
-
-            // 📦 Контент
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(height: 72),
-
-                  // 👤 Аватарка
                   Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
@@ -941,16 +932,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-
-                  // 🏷️ Имя
                   Text(
                     displayName,
                     style: const TextStyle(fontSize: 22, color: Colors.white),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 6),
-
-                  // 🆔 ID + копирование
                   GestureDetector(
                     onTap: () {
                       Clipboard.setData(ClipboardData(text: widget.userId));
@@ -964,14 +951,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 6),
-
-                  // 💬 Статус
                   if (userStatus?.isNotEmpty == true)
                     Text(userStatus!, style: const TextStyle(color: Colors.white70)),
                   const SizedBox(height: 18),
                   const Divider(),
-
-                  // 📘 «Обо мне»
                   const SizedBox(height: 12),
                   const Text('Обо мне', style: TextStyle(color: Colors.white, fontSize: 16)),
                   const SizedBox(height: 8),
@@ -982,8 +965,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                   const SizedBox(height: 24),
                   const Divider(),
-
-                  // ⚙️ Настройки (обновлённые)
                   const SizedBox(height: 8),
                   const Text('Настройки', style: TextStyle(color: Colors.white, fontSize: 16)),
                   const SizedBox(height: 8),
@@ -1014,13 +995,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                   const Divider(),
                   const SizedBox(height: 8),
-
-                  // 🧮 Версия
-                  Text('Menro Beta $version', style: const TextStyle(color: Colors.white30)),
-                  const SizedBox(height: 6),
-
-                  // 💀 Подпись
-                  const Text('Made with 💀 in Menro', style: TextStyle(color: Colors.white30)),
+                  Padding(
+                    padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewPadding.bottom),
+                    child: Column(
+                      children: [
+                        Text('Menro Beta $version', style: const TextStyle(color: Colors.white30)),
+                        const SizedBox(height: 6),
+                        const Text('Made with 💀 in Menro', style: TextStyle(color: Colors.white30)),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
