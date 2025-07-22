@@ -833,13 +833,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     if (!doc.exists) return;
 
     final data = doc.data();
-    setState(() {
-      avatarUrl = data?['avatarUrl'];
-      userName = data?['name'];
-      userStatus = data?['status'];
-      aboutMe = data?['aboutMe'];
-      version = data?['version'] ?? version;
-    });
+    if (mounted) {
+      setState(() {
+        avatarUrl = data?['avatarUrl'];
+        userName = data?['name'];
+        userStatus = data?['status'];
+        aboutMe = data?['aboutMe'];
+        version = data?['version'] ?? version;
+      });
+    }
   }
 
   @override
@@ -851,7 +853,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       body: SafeArea(
         child: Stack(
           children: [
-            // 🔙 Стрелка возврата
+            // 🔙 Назад
             Positioned(
               top: 12,
               left: 12,
@@ -899,7 +901,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ),
             ),
 
-            // ✏️ Кнопка редактирования
+            // ✏️ Редактировать
             Positioned(
               top: 12,
               right: 12,
@@ -940,7 +942,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // 🏷️ Имя / ID
+                  // 🏷️ Имя
                   Text(
                     displayName,
                     style: const TextStyle(fontSize: 22, color: Colors.white),
@@ -967,7 +969,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   if (userStatus?.isNotEmpty == true)
                     Text(userStatus!, style: const TextStyle(color: Colors.white70)),
                   const SizedBox(height: 18),
-
                   const Divider(),
 
                   // 📘 «Обо мне»
@@ -980,21 +981,20 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
-
                   const Divider(),
 
-                  // ⚙️ Настройки
+                  // ⚙️ Настройки (обновлённые)
                   const SizedBox(height: 8),
                   const Text('Настройки', style: TextStyle(color: Colors.white, fontSize: 16)),
                   const SizedBox(height: 8),
                   ListTile(
-                    leading: const Icon(Icons.notifications_outlined, color: Colors.white),
-                    title: const Text('Уведомления', style: TextStyle(color: Colors.white)),
+                    leading: const Icon(Icons.lock_outline, color: Colors.white),
+                    title: const Text('Конфиденциальность', style: TextStyle(color: Colors.white)),
                     onTap: () {},
                   ),
                   ListTile(
-                    leading: const Icon(Icons.lock_outline, color: Colors.white),
-                    title: const Text('Конфиденциальность', style: TextStyle(color: Colors.white)),
+                    leading: const Icon(Icons.notifications_outlined, color: Colors.white),
+                    title: const Text('Уведомления', style: TextStyle(color: Colors.white)),
                     onTap: () {},
                   ),
                   ListTile(
@@ -1002,11 +1002,24 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     title: const Text('Кастомизация', style: TextStyle(color: Colors.white)),
                     onTap: () {},
                   ),
+                  ListTile(
+                    leading: const Icon(Icons.language_outlined, color: Colors.white),
+                    title: const Text('Язык', style: TextStyle(color: Colors.white)),
+                    onTap: () {},
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.help_outline, color: Colors.white),
+                    title: const Text('Помощь', style: TextStyle(color: Colors.white)),
+                    onTap: () {},
+                  ),
                   const Divider(),
-
                   const SizedBox(height: 8),
+
+                  // 🧮 Версия
                   Text('Menro Beta $version', style: const TextStyle(color: Colors.white30)),
                   const SizedBox(height: 6),
+
+                  // 💀 Подпись
                   const Text('Made with 💀 in Menro', style: TextStyle(color: Colors.white30)),
                 ],
               ),
