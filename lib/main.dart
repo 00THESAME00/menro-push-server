@@ -912,100 +912,98 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 72),
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(colors: [Colors.grey.shade700, Colors.black]),
+              child: SingleChildScrollView(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).padding.bottom + 16,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 72),
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(colors: [Colors.grey.shade700, Colors.black]),
+                      ),
+                      padding: const EdgeInsets.all(2),
+                      child: CircleAvatar(
+                        radius: 48,
+                        backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+                        backgroundColor: Colors.grey[800],
+                        child: avatarUrl == null
+                            ? const Icon(Icons.person, color: Colors.white, size: 36)
+                            : null,
+                      ),
                     ),
-                    padding: const EdgeInsets.all(2),
-                    child: CircleAvatar(
-                      radius: 48,
-                      backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
-                      backgroundColor: Colors.grey[800],
-                      child: avatarUrl == null
-                          ? const Icon(Icons.person, color: Colors.white, size: 36)
-                          : null,
+                    const SizedBox(height: 12),
+                    Text(
+                      displayName,
+                      style: const TextStyle(fontSize: 22, color: Colors.white),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    displayName,
-                    style: const TextStyle(fontSize: 22, color: Colors.white),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 6),
-                  GestureDetector(
-                    onTap: () {
-                      Clipboard.setData(ClipboardData(text: widget.userId));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('ID скопирован')),
-                      );
-                    },
-                    child: Text(
-                      'ID: ${widget.userId}',
-                      style: const TextStyle(color: Colors.white54),
+                    const SizedBox(height: 6),
+                    GestureDetector(
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(text: widget.userId));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('ID скопирован')),
+                        );
+                      },
+                      child: Text(
+                        'ID: ${widget.userId}',
+                        style: const TextStyle(color: Colors.white54),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  if (userStatus?.isNotEmpty == true)
-                    Text(userStatus!, style: const TextStyle(color: Colors.white70)),
-                  const SizedBox(height: 18),
-                  const Divider(),
-                  const SizedBox(height: 12),
-                  const Text('Обо мне', style: TextStyle(color: Colors.white, fontSize: 16)),
-                  const SizedBox(height: 8),
-                  Text(
-                    aboutMe?.isNotEmpty == true ? aboutMe! : 'Здесь что-то будет',
-                    style: const TextStyle(color: Colors.white70),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  const Divider(),
-                  const SizedBox(height: 8),
-                  const Text('Настройки', style: TextStyle(color: Colors.white, fontSize: 16)),
-                  const SizedBox(height: 8),
-                  ListTile(
-                    leading: const Icon(Icons.lock_outline, color: Colors.white),
-                    title: const Text('Конфиденциальность', style: TextStyle(color: Colors.white)),
-                    onTap: () {},
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.notifications_outlined, color: Colors.white),
-                    title: const Text('Уведомления', style: TextStyle(color: Colors.white)),
-                    onTap: () {},
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.person_outline, color: Colors.white),
-                    title: const Text('Кастомизация', style: TextStyle(color: Colors.white)),
-                    onTap: () {},
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.language_outlined, color: Colors.white),
-                    title: const Text('Язык', style: TextStyle(color: Colors.white)),
-                    onTap: () {},
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.help_outline, color: Colors.white),
-                    title: const Text('Помощь', style: TextStyle(color: Colors.white)),
-                    onTap: () {},
-                  ),
-                  const Divider(),
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewPadding.bottom),
-                    child: Column(
-                      children: [
-                        Text('Menro Beta $version', style: const TextStyle(color: Colors.white30)),
-                        const SizedBox(height: 6),
-                        const Text('Made with 💀 in Menro', style: TextStyle(color: Colors.white30)),
-                      ],
+                    const SizedBox(height: 6),
+                    if (userStatus?.isNotEmpty == true)
+                      Text(userStatus!, style: const TextStyle(color: Colors.white70)),
+                    const SizedBox(height: 18),
+                    const Divider(),
+                    const SizedBox(height: 12),
+                    const Text('Обо мне', style: TextStyle(color: Colors.white, fontSize: 16)),
+                    const SizedBox(height: 8),
+                    Text(
+                      aboutMe?.isNotEmpty == true ? aboutMe! : 'Здесь что-то будет',
+                      style: const TextStyle(color: Colors.white70),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 24),
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    const Text('Настройки', style: TextStyle(color: Colors.white, fontSize: 16)),
+                    const SizedBox(height: 8),
+                    ListTile(
+                      leading: const Icon(Icons.lock_outline, color: Colors.white),
+                      title: const Text('Конфиденциальность', style: TextStyle(color: Colors.white)),
+                      onTap: () {},
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.notifications_outlined, color: Colors.white),
+                      title: const Text('Уведомления', style: TextStyle(color: Colors.white)),
+                      onTap: () {},
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.person_outline, color: Colors.white),
+                      title: const Text('Кастомизация', style: TextStyle(color: Colors.white)),
+                      onTap: () {},
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.language_outlined, color: Colors.white),
+                      title: const Text('Язык', style: TextStyle(color: Colors.white)),
+                      onTap: () {},
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.help_outline, color: Colors.white),
+                      title: const Text('Помощь', style: TextStyle(color: Colors.white)),
+                      onTap: () {},
+                    ),
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    Text('Menro Beta $version', style: const TextStyle(color: Colors.white30)),
+                    const SizedBox(height: 6),
+                    const Text('Made with 💀 in Menro', style: TextStyle(color: Colors.white30)),
+                  ],
+                ),
               ),
             ),
           ],
