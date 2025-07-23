@@ -863,13 +863,20 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       body: SafeArea(
         child: Stack(
           children: [
-            // 🔙 Назад — всегда видим
+            // 🔙 Назад — теперь ведёт на ChatListScreen
             Positioned(
               top: 12,
               left: 12,
               child: IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ChatListScreen(currentUserId: widget.userId),
+                    ),
+                  );
+                },
               ),
             ),
 
@@ -877,8 +884,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             AnimatedOpacity(
               duration: const Duration(milliseconds: 300),
               opacity: showTopIcons ? 1 : 0,
-              child: Visibility(
-                visible: showTopIcons,
+              child: IgnorePointer(
+                ignoring: !showTopIcons,
                 child: Padding(
                   padding: const EdgeInsets.only(right: 12, top: 12),
                   child: Align(
