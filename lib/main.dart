@@ -863,20 +863,25 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       body: SafeArea(
         child: Stack(
           children: [
-            // 🔙 Назад — теперь ведёт на ChatListScreen
-            Positioned(
-              top: 12,
-              left: 12,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ChatListScreen(currentUserId: widget.userId),
-                    ),
-                  );
-                },
+            // 🔙 Назад — ведёт на ChatListScreen из main.dart
+            IgnorePointer(
+              ignoring: false,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 12, top: 12),
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ChatListScreen(currentUserId: widget.userId),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
 
