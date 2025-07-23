@@ -812,6 +812,9 @@ class UserProfileScreen extends StatefulWidget {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
+  final ScrollController _scrollController = ScrollController();
+  bool showTopIcons = true;
+
   String? avatarUrl;
   String? userName;
   String? userStatus;
@@ -821,6 +824,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(() {
+      if (_scrollController.offset > 40 && showTopIcons) {
+        setState(() => showTopIcons = false);
+      } else if (_scrollController.offset <= 40 && !showTopIcons) {
+        setState(() => showTopIcons = true);
+      }
+    });
     _loadUserData();
   }
 
@@ -853,6 +863,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       body: SafeArea(
         child: Stack(
           children: [
+            // 🔙 Назад — всегда видим
             Positioned(
               top: 12,
               left: 12,
@@ -861,61 +872,74 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 onPressed: () => Navigator.pop(context),
               ),
             ),
-            Positioned(
-              top: 12,
-              right: 52,
-              child: IconButton(
-                icon: const Icon(Icons.more_vert, color: Colors.white),
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    backgroundColor: Colors.grey[850],
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                    ),
-                    builder: (_) => Column(
+
+            // ✏️ и ⁝ — появляются только сверху
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 300),
+              opacity: showTopIcons ? 1 : 0,
+              child: Visibility(
+                visible: showTopIcons,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 12, top: 12),
+                  child: Align(
+                    alignment: Alignment.topRight,
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        ListTile(
-                          leading: const Icon(Icons.add_a_photo_outlined, color: Colors.white),
-                          title: const Text('Добавить аватар', style: TextStyle(color: Colors.white)),
-                          onTap: () {},
+                        IconButton(
+                          icon: const Icon(Icons.more_vert, color: Colors.white),
+                          onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              backgroundColor: Colors.grey[850],
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                              ),
+                              builder: (_) => Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  ListTile(
+                                    leading: const Icon(Icons.add_a_photo_outlined, color: Colors.white),
+                                    title: const Text('Добавить аватар', style: TextStyle(color: Colors.white)),
+                                    onTap: () {},
+                                  ),
+                                  ListTile(
+                                    leading: const Icon(Icons.delete_outline, color: Colors.white),
+                                    title: const Text('Удалить аватар', style: TextStyle(color: Colors.white)),
+                                    onTap: () {},
+                                  ),
+                                  ListTile(
+                                    leading: const Icon(Icons.collections_outlined, color: Colors.white),
+                                    title: const Text('Коллекция аватарок', style: TextStyle(color: Colors.white)),
+                                    onTap: () {},
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                         ),
-                        ListTile(
-                          leading: const Icon(Icons.delete_outline, color: Colors.white),
-                          title: const Text('Удалить аватар', style: TextStyle(color: Colors.white)),
-                          onTap: () {},
-                        ),
-                        ListTile(
-                          leading: const Icon(Icons.collections_outlined, color: Colors.white),
-                          title: const Text('Коллекция аватарок', style: TextStyle(color: Colors.white)),
-                          onTap: () {},
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.white),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const Placeholder()),
+                            );
+                          },
                         ),
                       ],
                     ),
-                  );
-                },
+                  ),
+                ),
               ),
             ),
-            Positioned(
-              top: 12,
-              right: 12,
-              child: IconButton(
-                icon: const Icon(Icons.edit, color: Colors.white),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const Placeholder()),
-                  );
-                },
-              ),
-            ),
+
+            // 📦 Контент
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: SingleChildScrollView(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).padding.bottom + 16,
-                ),
+                controller: _scrollController,
+                padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
