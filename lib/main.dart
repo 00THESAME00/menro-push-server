@@ -803,6 +803,13 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
   }
 }
 
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+// Предполагая, что ChatListScreen объявлен в том же файле или импортирован
+// import 'package:your_app/main.dart';
+
 class UserProfileScreen extends StatefulWidget {
   final String userId;
   const UserProfileScreen({super.key, required this.userId});
@@ -825,10 +832,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(() {
-      if (_scrollController.offset > 40 && showTopIcons) {
-        setState(() => showTopIcons = false);
-      } else if (_scrollController.offset <= 40 && !showTopIcons) {
-        setState(() => showTopIcons = true);
+      final shouldShow = _scrollController.offset <= 40;
+      if (shouldShow != showTopIcons) {
+        setState(() => showTopIcons = shouldShow);
       }
     });
     _loadUserData();
@@ -839,53 +845,154 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         .collection('users')
         .doc(widget.userId)
         .get();
-
     if (!doc.exists) return;
-
     final data = doc.data();
-    if (mounted) {
-      setState(() {
-        avatarUrl = data?['avatarUrl'];
-        userName = data?['name'];
-        userStatus = data?['status'];
-        aboutMe = data?['aboutMe'];
-        version = data?['version'] ?? version;
-      });
-    }
+    if (!mounted) return;
+    setState(() {
+      avatarUrl = data?['avatarUrl'];
+      userName  = data?['name'];
+      userStatus= data?['status'];
+      aboutMe   = data?['aboutMe'];
+      version   = data?['version'] ?? version;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final displayName = (userName?.isNotEmpty == true) ? userName! : widget.userId;
+    final displayName =
+        (userName?.isNotEmpty == true) ? userName! : widget.userId;
 
     return Scaffold(
       backgroundColor: Colors.grey[900],
       body: SafeArea(
         child: Stack(
           children: [
-            // 🔙 Назад — ведёт на ChatListScreen из main.dart
-            IgnorePointer(
-              ignoring: false,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 12, top: 12),
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ChatListScreen(currentUserId: widget.userId),
+            // 1) Контент экрана — самый глубокий слой
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).padding.bottom + 16,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 72),
+                    // Аватар
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [Colors.grey.shade700, Colors.black],
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                      padding: const EdgeInsets.all(2),
+                      child: CircleAvatar(
+                        radius: 48,
+                        backgroundImage: avatarUrl != null
+                            ? NetworkImage(avatarUrl!)
+                            : null,
+                        backgroundColor: Colors.grey[800],
+                        child: avatarUrl == null
+                            ? const Icon(Icons.person,
+                                color: Colors.white, size: 36)
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Имя
+                    Text(
+                      displayName,
+                      style:
+                          const TextStyle(fontSize: 22, color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 6),
+                    // ID + копирование
+                    GestureDetector(
+                      onTap: () {
+                        Clipboard.setData(
+                            ClipboardData(text: widget.userId));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('ID скопирован')),
+                        );
+                      },
+                      child: Text('ID: ${widget.userId}',
+                          style: const TextStyle(color: Colors.white54)),
+                    ),
+                    const SizedBox(height: 6),
+                    // Статус
+                    if (userStatus?.isNotEmpty == true)
+                      Text(userStatus!,
+                          style: const TextStyle(color: Colors.white70)),
+                    const SizedBox(height: 18),
+                    const Divider(),
+                    const SizedBox(height: 12),
+                    const Text('Обо мне',
+                        style:
+                            TextStyle(color: Colors.white, fontSize: 16)),
+                    const SizedBox(height: 8),
+                    Text(
+                      aboutMe?.isNotEmpty == true ? aboutMe! : 'Здесь что-то будет',
+                      style: const TextStyle(color: Colors.white70),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    const Text('Настройки',
+                        style:
+                            TextStyle(color: Colors.white, fontSize: 16)),
+                    const SizedBox(height: 8),
+                    // Настройки
+                    ListTile(
+                      leading:
+                          const Icon(Icons.lock_outline, color: Colors.white),
+                      title: const Text('Конфиденциальность',
+                          style: TextStyle(color: Colors.white)),
+                      onTap: () {},
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.notifications_outlined,
+                          color: Colors.white),
+                      title: const Text('Уведомления',
+                          style: TextStyle(color: Colors.white)),
+                      onTap: () {},
+                    ),
+                    ListTile(
+                      leading:
+                          const Icon(Icons.person_outline, color: Colors.white),
+                      title: const Text('Кастомизация',
+                          style: TextStyle(color: Colors.white)),
+                      onTap: () {},
+                    ),
+                    ListTile(
+                      leading:
+                          const Icon(Icons.language_outlined, color: Colors.white),
+                      title: const Text('Язык',
+                          style: TextStyle(color: Colors.white)),
+                      onTap: () {},
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.help_outline, color: Colors.white),
+                      title: const Text('Помощь',
+                          style: TextStyle(color: Colors.white)),
+                      onTap: () {},
+                    ),
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    Text('Menro Beta $version',
+                        style: const TextStyle(color: Colors.white30)),
+                    const SizedBox(height: 6),
+                    const Text('Made with 💀 in Menro',
+                        style: TextStyle(color: Colors.white30)),
+                  ],
                 ),
               ),
             ),
 
-            // ✏️ и ⁝ — появляются только сверху
+            // 2) Верхние кнопки «меню» и «редактировать»
             AnimatedOpacity(
               duration: const Duration(milliseconds: 300),
               opacity: showTopIcons ? 1 : 0,
@@ -899,30 +1006,40 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.more_vert, color: Colors.white),
+                          icon:
+                              const Icon(Icons.more_vert, color: Colors.white),
                           onPressed: () {
                             showModalBottomSheet(
                               context: context,
                               backgroundColor: Colors.grey[850],
                               shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                                borderRadius:
+                                    BorderRadius.vertical(top: Radius.circular(12)),
                               ),
                               builder: (_) => Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   ListTile(
-                                    leading: const Icon(Icons.add_a_photo_outlined, color: Colors.white),
-                                    title: const Text('Добавить аватар', style: TextStyle(color: Colors.white)),
+                                    leading: const Icon(
+                                        Icons.add_a_photo_outlined,
+                                        color: Colors.white),
+                                    title: const Text('Добавить аватар',
+                                        style: TextStyle(color: Colors.white)),
                                     onTap: () {},
                                   ),
                                   ListTile(
-                                    leading: const Icon(Icons.delete_outline, color: Colors.white),
-                                    title: const Text('Удалить аватар', style: TextStyle(color: Colors.white)),
+                                    leading: const Icon(Icons.delete_outline,
+                                        color: Colors.white),
+                                    title: const Text('Удалить аватар',
+                                        style: TextStyle(color: Colors.white)),
                                     onTap: () {},
                                   ),
                                   ListTile(
-                                    leading: const Icon(Icons.collections_outlined, color: Colors.white),
-                                    title: const Text('Коллекция аватарок', style: TextStyle(color: Colors.white)),
+                                    leading: const Icon(
+                                        Icons.collections_outlined,
+                                        color: Colors.white),
+                                    title: const Text('Коллекция аватарок',
+                                        style: TextStyle(color: Colors.white)),
                                     onTap: () {},
                                   ),
                                 ],
@@ -935,10 +1052,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const Placeholder()),
+                              MaterialPageRoute(
+                                builder: (_) => const Placeholder(),
+                              ),
                             );
                           },
-                        ),
+                        )
                       ],
                     ),
                   ),
@@ -946,99 +1065,24 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ),
             ),
 
-            // 📦 Контент
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: SingleChildScrollView(
-                controller: _scrollController,
-                padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 72),
-                    Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(colors: [Colors.grey.shade700, Colors.black]),
+            // 3) Кнопка «назад» — самый верхний слой
+            Positioned(
+              top: 12,
+              left: 12,
+              child: Material(
+                color: Colors.transparent,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new,
+                      color: Colors.white),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            ChatListScreen(currentUserId: widget.userId),
                       ),
-                      padding: const EdgeInsets.all(2),
-                      child: CircleAvatar(
-                        radius: 48,
-                        backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
-                        backgroundColor: Colors.grey[800],
-                        child: avatarUrl == null
-                            ? const Icon(Icons.person, color: Colors.white, size: 36)
-                            : null,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      displayName,
-                      style: const TextStyle(fontSize: 22, color: Colors.white),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 6),
-                    GestureDetector(
-                      onTap: () {
-                        Clipboard.setData(ClipboardData(text: widget.userId));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('ID скопирован')),
-                        );
-                      },
-                      child: Text(
-                        'ID: ${widget.userId}',
-                        style: const TextStyle(color: Colors.white54),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    if (userStatus?.isNotEmpty == true)
-                      Text(userStatus!, style: const TextStyle(color: Colors.white70)),
-                    const SizedBox(height: 18),
-                    const Divider(),
-                    const SizedBox(height: 12),
-                    const Text('Обо мне', style: TextStyle(color: Colors.white, fontSize: 16)),
-                    const SizedBox(height: 8),
-                    Text(
-                      aboutMe?.isNotEmpty == true ? aboutMe! : 'Здесь что-то будет',
-                      style: const TextStyle(color: Colors.white70),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-                    const Divider(),
-                    const SizedBox(height: 8),
-                    const Text('Настройки', style: TextStyle(color: Colors.white, fontSize: 16)),
-                    const SizedBox(height: 8),
-                    ListTile(
-                      leading: const Icon(Icons.lock_outline, color: Colors.white),
-                      title: const Text('Конфиденциальность', style: TextStyle(color: Colors.white)),
-                      onTap: () {},
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.notifications_outlined, color: Colors.white),
-                      title: const Text('Уведомления', style: TextStyle(color: Colors.white)),
-                      onTap: () {},
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.person_outline, color: Colors.white),
-                      title: const Text('Кастомизация', style: TextStyle(color: Colors.white)),
-                      onTap: () {},
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.language_outlined, color: Colors.white),
-                      title: const Text('Язык', style: TextStyle(color: Colors.white)),
-                      onTap: () {},
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.help_outline, color: Colors.white),
-                      title: const Text('Помощь', style: TextStyle(color: Colors.white)),
-                      onTap: () {},
-                    ),
-                    const Divider(),
-                    const SizedBox(height: 8),
-                    Text('Menro Beta $version', style: const TextStyle(color: Colors.white30)),
-                    const SizedBox(height: 6),
-                    const Text('Made with 💀 in Menro', style: TextStyle(color: Colors.white30)),
-                  ],
+                    );
+                  },
                 ),
               ),
             ),
