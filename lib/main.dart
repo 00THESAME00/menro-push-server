@@ -803,13 +803,6 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
   }
 }
 
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-// Предполагая, что ChatListScreen объявлен в том же файле или импортирован
-// import 'package:your_app/main.dart';
-
 class UserProfileScreen extends StatefulWidget {
   final String userId;
   const UserProfileScreen({super.key, required this.userId});
