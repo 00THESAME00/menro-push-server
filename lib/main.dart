@@ -1086,7 +1086,7 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final nameController = TextEditingController();
-  final aboutMeController = TextEditingController();
+  final aboutController = TextEditingController();
   final storyController = TextEditingController();
   String? userCode;
   int aboutLength = 0;
@@ -1095,9 +1095,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void initState() {
     super.initState();
     _loadUserData();
-    aboutMeController.addListener(() {
+    aboutController.addListener(() {
       setState(() {
-        aboutLength = aboutMeController.text.length;
+        aboutLength = aboutController.text.length;
       });
     });
   }
@@ -1112,15 +1112,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       setState(() {
         userCode = widget.userId;
         nameController.text = data['name'] ?? '';
-        aboutMeController.text = data['aboutMe'] ?? '';
+        aboutController.text = data['aboutMe'] ?? '';
+        storyController.text = data['story'] ?? '';
       });
     }
   }
 
-  Future<void> _saveChanges() async {
+  Future<void> _saveProfile() async {
     await FirebaseFirestore.instance.collection('users').doc(widget.userId).update({
       'name': nameController.text.trim(),
-      'aboutMe': aboutMeController.text.trim(),
+      'aboutMe': aboutController.text.trim(),
       'story': storyController.text.trim(),
     });
     Navigator.pop(context);
@@ -1133,145 +1134,102 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       body: SafeArea(
         child: Stack(
           children: [
+            // 🔝 Верхняя панель
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              color: Colors.grey[900],
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: LinearProgressIndicator(
+                      value: null,
+                      backgroundColor: Colors.grey,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  ElevatedButton(
+                    onPressed: _saveProfile,
+                    child: const Text('Сохранить'),
+                  ),
+                ],
+              ),
+            ),
+
             // 📦 Контент
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.only(top: 72),
               child: SingleChildScrollView(
-                padding: const EdgeInsets.only(top: 72, bottom: 100),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 24),
-
-                    // 🆔 Код (нередактируемый)
+                    // 🆔 Код
                     const Text('Код', style: TextStyle(color: Colors.white)),
                     const SizedBox(height: 6),
                     GestureDetector(
                       onLongPress: () {
-                        if (userCode != null) {
-                          Clipboard.setData(ClipboardData(text: userCode!));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('ID скопирован')),
-                          );
-                        }
+                        Clipboard.setData(ClipboardData(text: widget.userId));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('ID скопирован')),
+                        );
                       },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[850],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                userCode ?? '...',
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ),
-                            const Icon(Icons.copy, color: Colors.white54),
-                          ],
-                        ),
+                      child: Text(
+                        widget.userId,
+                        style: const TextStyle(color: Colors.white54, fontSize: 16),
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    const Text('Ваш личный код', style: TextStyle(color: Colors.white54)),
-
                     const SizedBox(height: 24),
 
                     // 🏷️ Имя
                     const Text('Имя', style: TextStyle(color: Colors.white)),
                     const SizedBox(height: 6),
-                    TextFormField(
+                    TextField(
                       controller: nameController,
                       style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.grey[850],
+                      decoration: const InputDecoration(
+                        border: UnderlineInputBorder(),
                         hintText: 'Введите имя',
-                        hintStyle: const TextStyle(color: Colors.white38),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        hintStyle: TextStyle(color: Colors.white38),
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    const Text('Имя пользователя', style: TextStyle(color: Colors.white54)),
-
                     const SizedBox(height: 24),
 
-                    // 💬 Описание
-                    const Text('Обо мне', style: TextStyle(color: Colors.white)),
+                    // 💬 Обо мне
+                    const Text('Мой статус', style: TextStyle(color: Colors.white)),
                     const SizedBox(height: 6),
-                    TextFormField(
-                      controller: aboutMeController,
+                    TextField(
+                      controller: aboutController,
                       maxLength: 100,
                       style: const TextStyle(color: Colors.white),
                       decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.grey[850],
-                        hintText: 'Какой-то текст...',
+                        border: const UnderlineInputBorder(),
+                        hintText: 'Напишите что-то о себе',
                         hintStyle: const TextStyle(color: Colors.white38),
                         counterText: '${aboutLength}/100',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    const Text('Что вы думаете?', style: TextStyle(color: Colors.white54)),
+                    const SizedBox(height: 24),
 
-                    const SizedBox(height: 36),
-
-                    // 📖 Редактор сториса
+                    // 📖 История дня
                     const Text('История дня', style: TextStyle(color: Colors.white)),
                     const SizedBox(height: 6),
-                    TextFormField(
+                    TextField(
                       controller: storyController,
-                      maxLines: 5,
+                      maxLines: 4,
                       style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.grey[850],
-                        hintText: 'Напишите короткую историю или факт...',
-                        hintStyle: const TextStyle(color: Colors.white38),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      decoration: const InputDecoration(
+                        border: UnderlineInputBorder(),
+                        hintText: 'Расскажите что-то короткое...',
+                        hintStyle: TextStyle(color: Colors.white38),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                  ],
-                ),
-              ),
-            ),
-
-            // 🔝 Стрелка назад
-            Positioned(
-              top: 12,
-              left: 12,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-
-            // 🟦 Полоса + Сохранить
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                color: Colors.grey[900],
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                child: Row(
-                  children: [
-                    const Expanded(
-                      child: LinearProgressIndicator(
-                        value: null,
-                        backgroundColor: Colors.grey,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    ElevatedButton(
-                      onPressed: _saveChanges,
-                      child: const Text('Сохранить'),
-                    ),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
