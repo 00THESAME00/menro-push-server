@@ -1076,6 +1076,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 }
 
+
 class EditProfileScreen extends StatefulWidget {
   final String userId;
   const EditProfileScreen({Key? key, required this.userId}) : super(key: key);
@@ -1097,10 +1098,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     aboutController.addListener(() {
       setState(() => aboutLength = aboutController.text.length);
     });
-    _loadUser();
+    _loadUserData();
   }
 
-  Future<void> _loadUser() async {
+  Future<void> _loadUserData() async {
     final doc = await FirebaseFirestore.instance
         .collection('users')
         .doc(widget.userId)
@@ -1116,11 +1117,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  Future<void> _save() async {
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.userId)
-        .update({
+  Future<void> _saveProfile() async {
+    await FirebaseFirestore.instance.collection('users').doc(widget.userId).update({
       'name': nameController.text.trim(),
       'aboutMe': aboutController.text.trim(),
     });
@@ -1134,22 +1132,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       body: SafeArea(
         child: Stack(
           children: [
-            // 1) Прокручиваемый контент
+            // Прокручиваемый контент
             Positioned.fill(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 56, 24, 80),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Аватар + кнопка "Изменить"
+                    // Аватар + Изменить
                     Center(
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           CircleAvatar(
                             radius: 36,
-                            backgroundImage:
-                                avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+                            backgroundImage: avatarUrl != null
+                                ? NetworkImage(avatarUrl!)
+                                : null,
                             backgroundColor: Colors.grey[800],
                             child: avatarUrl == null
                                 ? const Icon(Icons.person, color: Colors.white, size: 36)
@@ -1158,7 +1157,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           const SizedBox(width: 12),
                           TextButton(
                             onPressed: () {
-                              // TODO: логика выбора аватара
+                              // TODO: выбор аватара
                             },
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.zero,
@@ -1174,7 +1173,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Поле "Код"
+                    // Код
                     const Text('Код', style: TextStyle(color: Colors.white)),
                     const SizedBox(height: 6),
                     GestureDetector(
@@ -1205,7 +1204,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Поле "Имя"
+                    // Имя
                     const Text('Имя', style: TextStyle(color: Colors.white)),
                     const SizedBox(height: 6),
                     TextField(
@@ -1233,7 +1232,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Поле "Обо мне"
+                    // Обо мне
                     const Text('Обо мне', style: TextStyle(color: Colors.white)),
                     const SizedBox(height: 6),
                     TextField(
@@ -1260,12 +1259,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       style: TextStyle(color: Colors.white54),
                     ),
                     const SizedBox(height: 24),
-                  ],
+                  ],  
                 ),
               ),
             ),
 
-            // 2) Статичная кнопка "Назад"
+            // Статичная стрелка Назад
             Positioned(
               top: 12,
               left: 12,
@@ -1275,7 +1274,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
 
-            // 3) Статичная кнопка "Сохранить"
+            // Статичная кнопка Сохранить
             Positioned(
               bottom: 0,
               left: 0,
@@ -1287,7 +1286,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton(
-                    onPressed: _save,
+                    onPressed: _saveProfile,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueAccent,
                       shape: RoundedRectangleBorder(
@@ -1303,6 +1302,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _saveProfile() async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.userId)
+        .update({
+      'name': nameController.text.trim(),
+      'aboutMe': aboutController.text.trim(),
+    });
+    Navigator.pop(context);
   }
 }
 // Изменить чат
