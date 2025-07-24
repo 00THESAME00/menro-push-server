@@ -1086,11 +1086,10 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   String? avatarUrl;
-  String? userCode;
   final nameController = TextEditingController();
   final aboutController = TextEditingController();
-  final storyController = TextEditingController();
   int aboutLength = 0;
+  String? userCode;
 
   @override
   void initState() {
@@ -1098,10 +1097,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     aboutController.addListener(() {
       setState(() => aboutLength = aboutController.text.length);
     });
-    _loadUserData();
+    _loadUser();
   }
 
-  Future<void> _loadUserData() async {
+  Future<void> _loadUser() async {
     final doc = await FirebaseFirestore.instance
         .collection('users')
         .doc(widget.userId)
@@ -1113,7 +1112,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         userCode = widget.userId;
         nameController.text = data['name'] as String? ?? '';
         aboutController.text = data['aboutMe'] as String? ?? '';
-        storyController.text = data['story'] as String? ?? '';
       });
     }
   }
@@ -1125,7 +1123,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         .update({
       'name': nameController.text.trim(),
       'aboutMe': aboutController.text.trim(),
-      'story': storyController.text.trim(),
     });
     Navigator.pop(context);
   }
@@ -1144,26 +1141,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Аватар + Изменить
+                    // Аватар + кнопка "Изменить"
                     Center(
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           CircleAvatar(
                             radius: 36,
-                            backgroundImage: avatarUrl != null
-                                ? NetworkImage(avatarUrl!)
-                                : null,
+                            backgroundImage:
+                                avatarUrl != null ? NetworkImage(avatarUrl!) : null,
                             backgroundColor: Colors.grey[800],
                             child: avatarUrl == null
-                                ? const Icon(Icons.person,
-                                    color: Colors.white, size: 36)
+                                ? const Icon(Icons.person, color: Colors.white, size: 36)
                                 : null,
                           ),
                           const SizedBox(width: 12),
                           TextButton(
                             onPressed: () {
-                              // TODO: добавить логику выбора аватара
+                              // TODO: выбор аватара
                             },
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.zero,
@@ -1171,8 +1166,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ),
                             child: const Text(
                               'Изменить',
-                              style:
-                                  TextStyle(color: Colors.blueAccent),
+                              style: TextStyle(color: Colors.blueAccent),
                             ),
                           ),
                         ],
@@ -1180,14 +1174,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Код
+                    // Раздел "Код"
                     const Text('Код', style: TextStyle(color: Colors.white)),
                     const SizedBox(height: 6),
                     GestureDetector(
                       onLongPress: () {
                         if (userCode != null) {
-                          Clipboard.setData(
-                              ClipboardData(text: userCode!));
+                          Clipboard.setData(ClipboardData(text: userCode!));
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('ID скопирован')),
                           );
@@ -1198,8 +1191,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           Expanded(
                             child: Text(
                               userCode ?? '—',
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 16),
+                              style: const TextStyle(color: Colors.white, fontSize: 16),
                             ),
                           ),
                           const Icon(Icons.copy, color: Colors.white54),
@@ -1213,7 +1205,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Имя
+                    // Поле "Имя"
                     const Text('Имя', style: TextStyle(color: Colors.white)),
                     const SizedBox(height: 6),
                     TextField(
@@ -1221,16 +1213,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       style: const TextStyle(color: Colors.white),
                       cursorColor: Colors.white,
                       decoration: const InputDecoration(
-                        border: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white54),
-                        ),
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white38),
-                        ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white),
-                        ),
-                        hintText: 'Введите имя',
+                        border: InputBorder.none,
+                        hintText: 'John',
                         hintStyle: TextStyle(color: Colors.white38),
                       ),
                     ),
@@ -1241,7 +1225,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Обо мне
+                    // Поле "Обо мне"
                     const Text('Обо мне', style: TextStyle(color: Colors.white)),
                     const SizedBox(height: 6),
                     TextField(
@@ -1250,7 +1234,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       style: const TextStyle(color: Colors.white),
                       cursorColor: Colors.white,
                       decoration: InputDecoration(
-                        border: const UnderlineInputBorder(),
+                        border: const UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white38),
+                        ),
                         enabledBorder: const UnderlineInputBorder(
                           borderSide: BorderSide(color: Colors.white38),
                         ),
@@ -1268,39 +1254,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       style: TextStyle(color: Colors.white54),
                     ),
                     const SizedBox(height: 24),
-
-                    // История дня
-                    const Text('История дня',
-                        style: TextStyle(color: Colors.white)),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: storyController,
-                      maxLines: 4,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        border: UnderlineInputBorder(),
-                        hintText: 'Расскажите что-то короткое...',
-                        hintStyle: TextStyle(color: Colors.white38),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
                   ],
                 ),
               ),
             ),
 
-            // Статичная стрелка Назад
+            // Статичная кнопка "Назад"
             Positioned(
               top: 12,
               left: 12,
               child: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new,
-                    color: Colors.white),
+                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
                 onPressed: () => Navigator.pop(context),
               ),
             ),
 
-            // Статичная кнопка Сохранить
+            // Статичная кнопка "Сохранить"
             Positioned(
               bottom: 0,
               left: 0,
