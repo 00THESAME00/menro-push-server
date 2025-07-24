@@ -1085,45 +1085,44 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
+  String? avatarUrl;
   final nameController = TextEditingController();
   final aboutController = TextEditingController();
-  final storyController = TextEditingController();
   String? userCode;
   int aboutLength = 0;
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
     aboutController.addListener(() {
-      setState(() {
-        aboutLength = aboutController.text.length;
-      });
+      setState(() => aboutLength = aboutController.text.length);
     });
+    _loadData();
   }
 
-  Future<void> _loadUserData() async {
+  Future<void> _loadData() async {
     final doc = await FirebaseFirestore.instance
         .collection('users')
         .doc(widget.userId)
         .get();
+    if (!doc.exists) return;
     final data = doc.data();
-    if (data != null) {
-      setState(() {
-        userCode = widget.userId;
-        nameController.text = data['name'] ?? '';
-        aboutController.text = data['aboutMe'] ?? '';
-        storyController.text = data['story'] ?? '';
-      });
-    }
+    setState(() {
+      avatarUrl = data?['avatarUrl'];
+      userCode = widget.userId;
+      nameController.text = data?['name'] ?? '';
+      aboutController.text = data?['aboutMe'] ?? '';
+    });
   }
 
-  Future<void> _saveProfile() async {
-    await FirebaseFirestore.instance.collection('users').doc(widget.userId).update({
-      'name': nameController.text.trim(),
-      'aboutMe': aboutController.text.trim(),
-      'story': storyController.text.trim(),
-    });
+  Future<void> _save() async {
+    await FirebaseFirestore.instance
+      .collection('users')
+      .doc(widget.userId)
+      .update({
+        'name': nameController.text.trim(),
+        'aboutMe': aboutController.text.trim(),
+      });
     Navigator.pop(context);
   }
 
@@ -1132,61 +1131,78 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[900],
       body: SafeArea(
-        child: Stack(
+        child: Column(
           children: [
-            // 🔝 Верхняя панель
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              color: Colors.grey[900],
+            // Автар + кнопка Изменить
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
+                  CircleAvatar(
+                    radius: 36,
+                    backgroundImage: avatarUrl != null
+                        ? NetworkImage(avatarUrl!)
+                        : null,
+                    backgroundColor: Colors.grey[800],
+                    child: avatarUrl == null
+                        ? const Icon(Icons.person, color: Colors.white)
+                        : null,
                   ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: LinearProgressIndicator(
-                      value: null,
-                      backgroundColor: Colors.grey,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  const SizedBox(width: 12),
+                  TextButton(
+                    onPressed: () {
+                      // TODO: добавить логику выбора фото
+                    },
+                    child: const Text(
+                      'Изменить',
+                      style: TextStyle(color: Colors.blue),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  ElevatedButton(
-                    onPressed: _saveProfile,
-                    child: const Text('Сохранить'),
                   ),
                 ],
               ),
             ),
 
-            // 📦 Контент
-            Padding(
-              padding: const EdgeInsets.only(top: 72),
+            Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 🆔 Код
+                    // Код
                     const Text('Код', style: TextStyle(color: Colors.white)),
                     const SizedBox(height: 6),
                     GestureDetector(
                       onLongPress: () {
-                        Clipboard.setData(ClipboardData(text: widget.userId));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('ID скопирован')),
-                        );
+                        if (userCode != null) {
+                          Clipboard.setData(
+                              ClipboardData(text: userCode!));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('ID скопирован')),
+                          );
+                        }
                       },
-                      child: Text(
-                        widget.userId,
-                        style: const TextStyle(color: Colors.white54, fontSize: 16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              userCode ?? '',
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 16),
+                            ),
+                          ),
+                          const Icon(Icons.copy, color: Colors.white54),
+                        ],
                       ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Ваш личный код',
+                      style: TextStyle(color: Colors.white54),
                     ),
                     const SizedBox(height: 24),
 
-                    // 🏷️ Имя
+                    // Имя
                     const Text('Имя', style: TextStyle(color: Colors.white)),
                     const SizedBox(height: 6),
                     TextField(
@@ -1198,39 +1214,46 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         hintStyle: TextStyle(color: Colors.white38),
                       ),
                     ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Имя пользователя',
+                      style: TextStyle(color: Colors.white54),
+                    ),
                     const SizedBox(height: 24),
 
-                    // 💬 Обо мне
-                    const Text('Мой статус', style: TextStyle(color: Colors.white)),
+                    // Обо мне
+                    const Text('Обо мне', style: TextStyle(color: Colors.white)),
                     const SizedBox(height: 6),
                     TextField(
                       controller: aboutController,
-                      maxLength: 100,
                       style: const TextStyle(color: Colors.white),
+                      maxLength: 100,
                       decoration: InputDecoration(
                         border: const UnderlineInputBorder(),
-                        hintText: 'Напишите что-то о себе',
+                        hintText: 'Какой-то текст...',
                         hintStyle: const TextStyle(color: Colors.white38),
-                        counterText: '${aboutLength}/100',
+                        counterText: '$aboutLength/100',
                       ),
                     ),
-                    const SizedBox(height: 24),
-
-                    // 📖 История дня
-                    const Text('История дня', style: TextStyle(color: Colors.white)),
                     const SizedBox(height: 6),
-                    TextField(
-                      controller: storyController,
-                      maxLines: 4,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        border: UnderlineInputBorder(),
-                        hintText: 'Расскажите что-то короткое...',
-                        hintStyle: TextStyle(color: Colors.white38),
-                      ),
+                    const Text(
+                      'Что вы думаете?',
+                      style: TextStyle(color: Colors.white54),
                     ),
                     const SizedBox(height: 24),
                   ],
+                ),
+              ),
+            ),
+
+            // Кнопка Сохранить
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _save,
+                  child: const Text('Сохранить'),
                 ),
               ),
             ),
