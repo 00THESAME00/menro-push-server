@@ -1076,7 +1076,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 }
 
-
 class EditProfileScreen extends StatefulWidget {
   final String userId;
   const EditProfileScreen({Key? key, required this.userId}) : super(key: key);
@@ -1090,6 +1089,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String? userCode;
   final nameController = TextEditingController();
   final aboutController = TextEditingController();
+  final storyController = TextEditingController();
   int aboutLength = 0;
 
   @override
@@ -1113,14 +1113,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         userCode = widget.userId;
         nameController.text = data['name'] as String? ?? '';
         aboutController.text = data['aboutMe'] as String? ?? '';
+        storyController.text = data['story'] as String? ?? '';
       });
     }
   }
 
   Future<void> _saveProfile() async {
-    await FirebaseFirestore.instance.collection('users').doc(widget.userId).update({
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.userId)
+        .update({
       'name': nameController.text.trim(),
       'aboutMe': aboutController.text.trim(),
+      'story': storyController.text.trim(),
     });
     Navigator.pop(context);
   }
@@ -1151,13 +1156,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 : null,
                             backgroundColor: Colors.grey[800],
                             child: avatarUrl == null
-                                ? const Icon(Icons.person, color: Colors.white, size: 36)
+                                ? const Icon(Icons.person,
+                                    color: Colors.white, size: 36)
                                 : null,
                           ),
                           const SizedBox(width: 12),
                           TextButton(
                             onPressed: () {
-                              // TODO: выбор аватара
+                              // TODO: добавить логику выбора аватара
                             },
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.zero,
@@ -1165,7 +1171,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ),
                             child: const Text(
                               'Изменить',
-                              style: TextStyle(color: Colors.blueAccent),
+                              style:
+                                  TextStyle(color: Colors.blueAccent),
                             ),
                           ),
                         ],
@@ -1179,7 +1186,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     GestureDetector(
                       onLongPress: () {
                         if (userCode != null) {
-                          Clipboard.setData(ClipboardData(text: userCode!));
+                          Clipboard.setData(
+                              ClipboardData(text: userCode!));
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('ID скопирован')),
                           );
@@ -1190,7 +1198,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           Expanded(
                             child: Text(
                               userCode ?? '—',
-                              style: const TextStyle(color: Colors.white, fontSize: 16),
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 16),
                             ),
                           ),
                           const Icon(Icons.copy, color: Colors.white54),
@@ -1259,7 +1268,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       style: TextStyle(color: Colors.white54),
                     ),
                     const SizedBox(height: 24),
-                  ],  
+
+                    // История дня
+                    const Text('История дня',
+                        style: TextStyle(color: Colors.white)),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: storyController,
+                      maxLines: 4,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        border: UnderlineInputBorder(),
+                        hintText: 'Расскажите что-то короткое...',
+                        hintStyle: TextStyle(color: Colors.white38),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                 ),
               ),
             ),
@@ -1269,7 +1294,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               top: 12,
               left: 12,
               child: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                icon: const Icon(Icons.arrow_back_ios_new,
+                    color: Colors.white),
                 onPressed: () => Navigator.pop(context),
               ),
             ),
@@ -1302,17 +1328,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> _saveProfile() async {
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.userId)
-        .update({
-      'name': nameController.text.trim(),
-      'aboutMe': aboutController.text.trim(),
-    });
-    Navigator.pop(context);
   }
 }
 // Изменить чат
