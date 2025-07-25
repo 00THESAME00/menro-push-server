@@ -1081,22 +1081,17 @@ class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({Key? key, required this.userId}) : super(key: key);
 
   @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
+  _EditProfileScreenState createState() => _EditProfileScreenState();
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  String? avatarUrl;
+  String? userCode;
   final nameController = TextEditingController();
   final aboutController = TextEditingController();
-  int aboutLength = 0;
-  String? userCode;
 
   @override
   void initState() {
     super.initState();
-    aboutController.addListener(() {
-      setState(() => aboutLength = aboutController.text.length);
-    });
     _loadUser();
   }
 
@@ -1105,15 +1100,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         .collection('users')
         .doc(widget.userId)
         .get();
-    final data = doc.data();
-    if (data != null && mounted) {
-      setState(() {
-        avatarUrl = data['avatarUrl'] as String?;
-        userCode = widget.userId;
-        nameController.text = data['name'] as String? ?? '';
-        aboutController.text = data['aboutMe'] as String? ?? '';
-      });
-    }
+    final data = doc.data() ?? {};
+    setState(() {
+      userCode = widget.userId;
+      nameController.text = data['name'] as String? ?? '';
+      aboutController.text = data['aboutMe'] as String? ?? '';
+    });
   }
 
   Future<void> _saveProfile() async {
@@ -1132,168 +1124,92 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[900],
       body: SafeArea(
-        child: Stack(
-          children: [
-            // Прокручиваемый контент
-            Positioned.fill(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 56, 24, 80),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Код
+              const Text('Код', style: TextStyle(color: Colors.white)),
+              const SizedBox(height: 6),
+              GestureDetector(
+                onLongPress: () {
+                  if (userCode != null) {
+                    Clipboard.setData(ClipboardData(text: userCode!));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('ID скопирован')),
+                    );
+                  }
+                },
+                child: Row(
                   children: [
-                    // Аватар + кнопка "Изменить"
-                    Center(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CircleAvatar(
-                            radius: 36,
-                            backgroundImage:
-                                avatarUrl != null ? NetworkImage(avatarUrl!) : null,
-                            backgroundColor: Colors.grey[800],
-                            child: avatarUrl == null
-                                ? const Icon(Icons.person, color: Colors.white, size: 36)
-                                : null,
-                          ),
-                          const SizedBox(width: 12),
-                          TextButton(
-                            onPressed: () {
-                              // TODO: выбор аватара
-                            },
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              minimumSize: const Size(50, 30),
-                            ),
-                            child: const Text(
-                              'Изменить',
-                              style: TextStyle(color: Colors.blueAccent),
-                            ),
-                          ),
-                        ],
+                    Expanded(
+                      child: Text(
+                        userCode ?? '—',
+                        style: const TextStyle(color: Colors.white, fontSize: 16),
                       ),
                     ),
-                    const SizedBox(height: 24),
-
-                    // Раздел "Код"
-                    const Text('Код', style: TextStyle(color: Colors.white)),
-                    const SizedBox(height: 6),
-                    GestureDetector(
-                      onLongPress: () {
-                        if (userCode != null) {
-                          Clipboard.setData(ClipboardData(text: userCode!));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('ID скопирован')),
-                          );
-                        }
-                      },
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              userCode ?? '—',
-                              style: const TextStyle(color: Colors.white, fontSize: 16),
-                            ),
-                          ),
-                          const Icon(Icons.copy, color: Colors.white54),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Ваш личный код',
-                      style: TextStyle(color: Colors.white54),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Поле "Имя"
-                    const Text('Имя', style: TextStyle(color: Colors.white)),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: nameController,
-                      style: const TextStyle(color: Colors.white),
-                      cursorColor: Colors.white,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        hintText: 'John',
-                        hintStyle: TextStyle(color: Colors.white38),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Имя пользователя',
-                      style: TextStyle(color: Colors.white54),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Поле "Обо мне"
-                    const Text('Обо мне', style: TextStyle(color: Colors.white)),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: aboutController,
-                      maxLength: 100,
-                      style: const TextStyle(color: Colors.white),
-                      cursorColor: Colors.white,
-                      decoration: InputDecoration(
-                        border: const UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white38),
-                        ),
-                        enabledBorder: const UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white38),
-                        ),
-                        focusedBorder: const UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white),
-                        ),
-                        hintText: 'Какой-то текст',
-                        hintStyle: const TextStyle(color: Colors.white38),
-                        counterText: '$aboutLength/100',
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Что вы думаете?',
-                      style: TextStyle(color: Colors.white54),
-                    ),
-                    const SizedBox(height: 24),
+                    const Icon(Icons.copy, color: Colors.white54),
                   ],
                 ),
               ),
-            ),
-
-            // Статичная кнопка "Назад"
-            Positioned(
-              top: 12,
-              left: 12,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
+              const SizedBox(height: 6),
+              const Text(
+                'Ваш личный код',
+                style: TextStyle(color: Colors.white54),
               ),
-            ),
+              const SizedBox(height: 24),
 
-            // Статичная кнопка "Сохранить"
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                color: Colors.grey[900],
-                padding: const EdgeInsets.all(24),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: _saveProfile,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    child: const Text('Сохранить'),
-                  ),
+              // Имя
+              const Text('Имя', style: TextStyle(color: Colors.white)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: nameController,
+                style: const TextStyle(color: Colors.white),
+                cursorColor: Colors.white,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  hintText: 'John',
+                  hintStyle: TextStyle(color: Colors.white38),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 6),
+              const Text(
+                'Имя пользователя',
+                style: TextStyle(color: Colors.white54),
+              ),
+              const SizedBox(height: 24),
+
+              // Обо мне
+              const Text('Обо мне', style: TextStyle(color: Colors.white)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: aboutController,
+                style: const TextStyle(color: Colors.white),
+                cursorColor: Colors.white,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  hintText: 'Какой-то текст',
+                  hintStyle: TextStyle(color: Colors.white38),
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Что вы думаете?',
+                style: TextStyle(color: Colors.white54),
+              ),
+              const SizedBox(height: 24),
+
+              // Кнопка Сохранить
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _saveProfile,
+                  child: const Text('Сохранить'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
