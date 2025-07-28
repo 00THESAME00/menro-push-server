@@ -1076,145 +1076,75 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 }
 
-class EditProfileScreen extends StatefulWidget {
-  final String userId;
-  const EditProfileScreen({Key? key, required this.userId}) : super(key: key);
 
-  @override
-  _EditProfileScreenState createState() => _EditProfileScreenState();
-}
-
-class _EditProfileScreenState extends State<EditProfileScreen> {
-  String? userCode;
-  final nameController = TextEditingController();
-  final aboutController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUser();
-  }
-
-  Future<void> _loadUser() async {
-    final doc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.userId)
-        .get();
-    final data = doc.data() ?? {};
-    setState(() {
-      userCode = widget.userId;
-      nameController.text = data['name'] as String? ?? '';
-      aboutController.text = data['aboutMe'] as String? ?? '';
-    });
-  }
-
-  Future<void> _saveProfile() async {
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.userId)
-        .update({
-      'name': nameController.text.trim(),
-      'aboutMe': aboutController.text.trim(),
-    });
-    Navigator.pop(context);
-  }
+class EditProfileScreen  extends StatelessWidget {
+  const EditProfileScreen ({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[900],
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Код
-              const Text('Код', style: TextStyle(color: Colors.white)),
-              const SizedBox(height: 6),
-              GestureDetector(
-                onLongPress: () {
-                  if (userCode != null) {
-                    Clipboard.setData(ClipboardData(text: userCode!));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('ID скопирован')),
-                    );
-                  }
-                },
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        userCode ?? '—',
-                        style: const TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                    ),
-                    const Icon(Icons.copy, color: Colors.white54),
-                  ],
-                ),
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        leading: Icon(Icons.arrow_back, color: Colors.white),
+        backgroundColor: Colors.black,
+        elevation: 0,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: ListView(
+          children: [
+            const SizedBox(height: 16),
+            Center(
+              child: CircleAvatar(
+                radius: 40,
+                backgroundColor: Colors.grey[800],
+                child: Icon(Icons.person, color: Colors.white, size: 40),
               ),
-              const SizedBox(height: 6),
-              const Text(
-                'Ваш личный код',
-                style: TextStyle(color: Colors.white54),
+            ),
+            const SizedBox(height: 24),
+            _buildTextLabel("Код пользователя"),
+            _buildTextField(hint: "emil_122"),
+            _buildTextLabel("Имя"),
+            _buildTextField(hint: "Эмиль"),
+            _buildTextLabel("Обо мне"),
+            _buildTextField(hint: "UX-философия + Flutter мастерство", maxLines: 3),
+            const SizedBox(height: 32),
+            ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                padding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              const SizedBox(height: 24),
-
-              // Имя
-              const Text('Имя', style: TextStyle(color: Colors.white)),
-              const SizedBox(height: 6),
-              TextField(
-                controller: nameController,
-                style: const TextStyle(color: Colors.white),
-                cursorColor: Colors.white,
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'John',
-                  hintStyle: TextStyle(color: Colors.white38),
-                ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Имя пользователя',
-                style: TextStyle(color: Colors.white54),
-              ),
-              const SizedBox(height: 24),
-
-              // Обо мне
-              const Text('Обо мне', style: TextStyle(color: Colors.white)),
-              const SizedBox(height: 6),
-              TextField(
-                controller: aboutController,
-                style: const TextStyle(color: Colors.white),
-                cursorColor: Colors.white,
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'Какой-то текст',
-                  hintStyle: TextStyle(color: Colors.white38),
-                ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Что вы думаете?',
-                style: TextStyle(color: Colors.white54),
-              ),
-              const SizedBox(height: 24),
-
-              // Кнопка Сохранить
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _saveProfile,
-                  child: const Text('Сохранить'),
-                ),
-              ),
-            ],
-          ),
+              child: const Text("Сохранить", style: TextStyle(fontSize: 16)),
+            ),
+          ],
         ),
       ),
     );
   }
+
+  Widget _buildTextLabel(String text) => Padding(
+        padding: const EdgeInsets.only(top: 16, bottom: 4),
+        child: Text(text, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+      );
+
+  Widget _buildTextField({required String hint, int maxLines = 1}) => TextField(
+        maxLines: maxLines,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: const TextStyle(color: Colors.white38),
+          filled: true,
+          fillColor: Colors.grey[900],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+        ),
+      );
 }
+
+
 // Изменить чат
 
 class RenameChatScreen extends StatefulWidget {
