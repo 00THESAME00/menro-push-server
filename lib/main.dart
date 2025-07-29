@@ -1103,11 +1103,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 🔧 Аватарка + кнопка "Изменить"
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                  // 🔧 Центрированная ава + кнопка "Изменить"
+                  Center(
                     child: Stack(
-                      alignment: Alignment.center,
+                      clipBehavior: Clip.none,
                       children: [
                         CircleAvatar(
                           radius: 50,
@@ -1116,7 +1115,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                         Positioned(
                           bottom: -6,
-                          right: 0, // можно подрегулировать для точной выравнивания
+                          right: -6,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF353537),
@@ -1241,6 +1240,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 }
+
 // Изменить чат
 
 class RenameChatScreen extends StatefulWidget {
