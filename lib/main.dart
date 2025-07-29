@@ -1102,10 +1102,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 🎯 Центровка с точной кнопкой
                   Center(
                     child: SizedBox(
-                      width: 180,
+                      width: 180, // 👈 изменено
                       height: 110,
                       child: Stack(
                         clipBehavior: Clip.none,
@@ -1121,11 +1120,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                           Positioned(
                             bottom: -4,
-                            right: -60,
+                            right: -60, // 👈 изменено
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF353537),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), // 👈 изменено
+                                minimumSize: const Size(0, 0), // 👈 изменено
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
