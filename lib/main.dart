@@ -1105,7 +1105,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   // 🎯 Центровка с точной кнопкой
                   Center(
                     child: SizedBox(
-                      width: 160,
+                      width: 180,
                       height: 110,
                       child: Stack(
                         clipBehavior: Clip.none,
@@ -1121,7 +1121,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                           Positioned(
                             bottom: -4,
-                            right: -40,
+                            right: -60,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF353537),
