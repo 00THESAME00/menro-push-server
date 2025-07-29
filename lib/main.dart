@@ -1093,6 +1093,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF212121),
       body: Stack(
         children: [
           // Прокручиваемый контент
@@ -1102,16 +1103,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Center(
-                    child: CircleAvatar(radius: 50, backgroundColor: Colors.grey),
-                  ),
-                  const SizedBox(height: 12),
-                  const Center(
-                    child: Text('Изменить', style: TextStyle(color: Colors.blue)),
+                  // Аватар + кнопка "Изменить"
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const CircleAvatar(radius: 50, backgroundColor: Colors.grey),
+                      const SizedBox(width: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Color(0xFF353537),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text('Изменить', style: TextStyle(color: Colors.white)),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 24),
 
-                  // Код: нередактируемое, копируется по зажатию
+                  // ID (копируется по зажатию)
                   GestureDetector(
                     onLongPress: () {
                       Clipboard.setData(ClipboardData(text: widget.userId));
@@ -1153,7 +1163,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                   ),
 
-                  // Описание
+                  // Обо мне
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     child: TextField(
@@ -1169,7 +1179,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                   const SizedBox(height: 32),
 
-                  // Сторис редактор
+                  // Сторис редактор (заглушка)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
@@ -1186,7 +1196,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ),
 
-          // Верхняя полоса с кнопкой Назад
+          // Верхняя панель с кнопкой Назад
           Positioned(
             top: 0,
             left: 0,
@@ -1209,7 +1219,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ),
 
-          // Нижняя статичная кнопка "Сохранить"
+          // Кнопка "Сохранить" внизу
           Positioned(
             bottom: 0,
             left: 0,
@@ -1231,8 +1241,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 }
-
-
 // Изменить чат
 
 class RenameChatScreen extends StatefulWidget {
