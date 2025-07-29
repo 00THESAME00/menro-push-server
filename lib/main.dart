@@ -1076,7 +1076,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 }
 
-
 class EditProfileScreen extends StatefulWidget {
   final String userId;
 
@@ -1103,21 +1102,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 🔧 Центрированная ава + кнопка "Изменить"
+                  // 🔧 Центрированная аватарка с кнопкой
                   Center(
                     child: SizedBox(
-                      width: 100,
-                      height: 100,
+                      width: 120,
+                      height: 120,
                       child: Stack(
                         clipBehavior: Clip.none,
                         children: [
-                          const CircleAvatar(
-                            radius: 50,
-                            backgroundColor: Colors.grey,
+                          const Positioned.fill(
+                            child: Align(
+                              alignment: Alignment.center,
+                              child: CircleAvatar(
+                                radius: 50,
+                                backgroundColor: Colors.grey,
+                              ),
+                            ),
                           ),
                           Positioned(
-                            bottom: -6,
-                            right: -6,
+                            bottom: -4,
+                            right: -4,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF353537),
