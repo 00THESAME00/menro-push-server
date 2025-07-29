@@ -1102,11 +1102,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 🔧 Центрированная аватарка с кнопкой
+                  // 🔧 Центрированная ава + кнопка "Изменить" правее
                   Center(
                     child: SizedBox(
-                      width: 120,
-                      height: 120,
+                      width: 130, // увеличено для размещения кнопки
+                      height: 110,
                       child: Stack(
                         clipBehavior: Clip.none,
                         children: [
@@ -1121,7 +1121,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                           Positioned(
                             bottom: -4,
-                            right: -4,
+                            right: -12, // сдвиг за круг
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF353537),
