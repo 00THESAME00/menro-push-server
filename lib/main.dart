@@ -1097,49 +1097,48 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       backgroundColor: const Color(0xFF212121),
       body: Stack(
         children: [
-          // Скроллимый контент
           Positioned.fill(
             child: SingleChildScrollView(
               padding: const EdgeInsets.only(top: 80, bottom: 100),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 🔧 Аватарка и кнопка "Изменить"
+                  // 🔧 Аватарка + кнопка "Изменить"
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
+                    child: Stack(
+                      alignment: Alignment.center,
                       children: [
-                        const Spacer(),
-                        // Аватарка
                         CircleAvatar(
                           radius: 50,
                           backgroundImage: NetworkImage(avatarUrl),
                           backgroundColor: Colors.grey[300],
                         ),
-                        const SizedBox(width: 24),
-                        // Кнопка
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF353537),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                        Positioned(
+                          bottom: -6,
+                          right: 0, // можно подрегулировать для точной выравнивания
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF353537),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              elevation: 0,
                             ),
-                            elevation: 0,
-                          ),
-                          onPressed: () {
-                            print('Изменить аватар');
-                          },
-                          child: const Text(
-                            'Изменить',
-                            style: TextStyle(color: Colors.white, fontSize: 14),
+                            onPressed: () {
+                              print('Изменить аватар');
+                            },
+                            child: const Text(
+                              'Изменить',
+                              style: TextStyle(color: Colors.white, fontSize: 14),
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
 
-                  // 🟡 Всё, что ниже — пока без изменений
                   const SizedBox(height: 32),
 
                   GestureDetector(
@@ -1200,7 +1199,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ),
 
-          // Верхняя панель
           Positioned(
             top: 0,
             left: 0,
@@ -1223,7 +1221,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ),
 
-          // Кнопка "Сохранить"
           Positioned(
             bottom: 0,
             left: 0,
