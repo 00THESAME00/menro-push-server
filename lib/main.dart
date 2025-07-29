@@ -1089,6 +1089,7 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController aboutController = TextEditingController();
+  String avatarUrl = 'https://example.com/avatar.jpg';
 
   @override
   Widget build(BuildContext context) {
@@ -1096,64 +1097,69 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       backgroundColor: const Color(0xFF212121),
       body: Stack(
         children: [
-          // Прокручиваемый контент
           Positioned.fill(
             child: SingleChildScrollView(
               padding: const EdgeInsets.only(top: 80, bottom: 100),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Аватар + кнопка "Изменить"
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  // Аватарка с кнопкой "Изменить" внутри Stack
+                  Stack(
+                    alignment: Alignment.center,
                     children: [
-                      const CircleAvatar(radius: 50, backgroundColor: Colors.grey),
-                      const SizedBox(width: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: Color(0xFF353537),
-                          borderRadius: BorderRadius.circular(8),
+                      CircleAvatar(
+                        radius: 56,
+                        backgroundImage: NetworkImage(avatarUrl),
+                        backgroundColor: Colors.grey[300],
+                      ),
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF353537),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 0,
+                          ),
+                          onPressed: () {
+                            print('Изменить аватар');
+                            // TODO: логика смены
+                          },
+                          child: const Text(
+                            'Изменить',
+                            style: TextStyle(color: Colors.white, fontSize: 14),
+                          ),
                         ),
-                        child: const Text('Изменить', style: TextStyle(color: Colors.white)),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
 
-                  // ID (копируется по зажатию)
-                  GestureDetector(
-                    onLongPress: () {
-                      Clipboard.setData(ClipboardData(text: widget.userId));
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Text('ID скопирован'),
-                        duration: Duration(seconds: 1),
-                      ));
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade600),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          const Text('ID:', style: TextStyle(color: Colors.grey)),
-                          const SizedBox(width: 8),
-                          Text(widget.userId, style: const TextStyle(fontWeight: FontWeight.bold)),
-                          const Spacer(),
-                          const Icon(Icons.copy, size: 18, color: Colors.grey),
-                        ],
-                      ),
+                  // Код
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade600),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        const Text('Код:', style: TextStyle(color: Colors.grey)),
+                        const SizedBox(width: 8),
+                        Text(widget.userId, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        const Spacer(),
+                        const Icon(Icons.copy, size: 18, color: Colors.grey),
+                      ],
                     ),
                   ),
-
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
 
                   // Имя
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: TextField(
                       controller: nameController,
                       decoration: const InputDecoration(
@@ -1162,10 +1168,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 24),
 
                   // Обо мне
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: TextField(
                       controller: aboutController,
                       maxLines: 4,
@@ -1176,27 +1183,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: 32),
-
-                  // Сторис редактор (заглушка)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text('Сторис редактор', style: TextStyle(fontWeight: FontWeight.w600)),
-                        SizedBox(height: 8),
-                        Placeholder(fallbackHeight: 150),
-                      ],
-                    ),
-                  ),
                 ],
               ),
             ),
           ),
 
-          // Верхняя панель с кнопкой Назад
+          // Верхняя панель
           Positioned(
             top: 0,
             left: 0,
@@ -1219,7 +1211,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ),
 
-          // Кнопка "Сохранить" внизу
+          // Кнопка "Сохранить"
           Positioned(
             bottom: 0,
             left: 0,
