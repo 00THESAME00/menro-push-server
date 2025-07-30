@@ -1214,7 +1214,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 icon: const Icon(
                   Icons.arrow_back_ios_new,
                   color: Colors.white,
-                  size: 28,
+                  size: 24, // тот же, как в профиле
                 ),
                 onPressed: () => Navigator.pop(context),
               ),
