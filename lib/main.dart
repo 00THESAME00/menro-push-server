@@ -1126,8 +1126,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF353537),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 6),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 minimumSize: const Size(0, 0),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
@@ -1139,8 +1138,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               },
                               child: const Text(
                                 'Изменить',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 14),
+                                style: TextStyle(color: Colors.white, fontSize: 14),
                               ),
                             ),
                           ),
@@ -1161,23 +1159,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     },
                     child: Container(
                       margin: const EdgeInsets.symmetric(horizontal: 16),
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey.shade600),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         children: [
-                          const Text('Код:',
-                              style: TextStyle(color: Colors.grey)),
+                          const Text('Код:', style: TextStyle(color: Colors.grey)),
                           const SizedBox(width: 8),
-                          Text(widget.userId,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold)),
+                          Text(widget.userId, style: const TextStyle(fontWeight: FontWeight.bold)),
                           const Spacer(),
-                          const Icon(Icons.copy,
-                              size: 18, color: Colors.grey),
+                          const Icon(Icons.copy, size: 18, color: Colors.grey),
                         ],
                       ),
                     ),
@@ -1211,27 +1204,30 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ),
 
-          // 🔙 Новая визуальная стрелка вместо текста "<"
+          // 🔙 Унифицированная кнопка назад
           Positioned(
-            top: statusBarHeight + 8,
-            left: 16,
-            child: GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: const Icon(
-                Icons.chevron_left,
-                color: Colors.white,
-                size: 32,
+            top: statusBarHeight + 12,
+            left: 12,
+            child: Material(
+              color: Colors.transparent,
+              child: IconButton(
+                icon: const Icon(
+                  Icons.arrow_back_ios_new,
+                  color: Colors.white,
+                  size: 28,
+                ),
+                onPressed: () => Navigator.pop(context),
               ),
             ),
           ),
 
+          // ✅ Кнопка «Сохранить»
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               color: Colors.black.withOpacity(0.85),
               child: ElevatedButton(
                 onPressed: () {
