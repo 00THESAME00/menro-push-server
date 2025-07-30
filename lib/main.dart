@@ -1100,7 +1100,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         children: [
           Positioned.fill(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.only(top: 120, bottom: 100), // 👈 увеличен отступ сверху
+              padding: const EdgeInsets.only(top: 120, bottom: 100),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1147,7 +1147,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 40), // 👈 чуть больше отступ
+                  const SizedBox(height: 40),
 
                   GestureDetector(
                     onLongPress: () {
@@ -1207,22 +1207,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ),
 
+          // 👇 Кастомная стрелка "<" чуть ниже
           Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: EdgeInsets.only(
-                top: statusBarHeight,
-                left: 8,
-                right: 8,
-              ),
-              height: 44 + statusBarHeight, // 👈 уменьшена высота
-              color: Colors.black.withOpacity(0.8),
-              alignment: Alignment.centerLeft,
-              child: IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
+            top: statusBarHeight + 8,
+            left: 16,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: const Text(
+                '<',
+                style: TextStyle(
+                  fontSize: 26,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ),
