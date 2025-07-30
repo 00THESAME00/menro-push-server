@@ -1092,6 +1092,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final double statusBarHeight = MediaQuery.of(context).padding.top;
+
     return Scaffold(
       backgroundColor: const Color(0xFF212121),
       body: Stack(
@@ -1104,7 +1106,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 children: [
                   Center(
                     child: SizedBox(
-                      width: 180, // 👈 изменено
+                      width: 180,
                       height: 110,
                       child: Stack(
                         clipBehavior: Clip.none,
@@ -1120,12 +1122,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                           Positioned(
                             bottom: -4,
-                            right: -60, // 👈 изменено
+                            right: -60,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF353537),
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), // 👈 изменено
-                                minimumSize: const Size(0, 0), // 👈 изменено
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                minimumSize: const Size(0, 0),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -1210,9 +1212,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             left: 0,
             right: 0,
             child: Container(
-              height: 60,
+              padding: EdgeInsets.only(
+                top: statusBarHeight,
+                left: 16,
+                right: 16,
+              ),
+              height: 60 + statusBarHeight,
               color: Colors.black.withOpacity(0.8),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
               alignment: Alignment.centerLeft,
               child: Row(
                 children: [
