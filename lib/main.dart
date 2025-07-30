@@ -1100,7 +1100,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         children: [
           Positioned.fill(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.only(top: 80, bottom: 100),
+              padding: const EdgeInsets.only(top: 120, bottom: 100), // 👈 увеличен отступ сверху
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1147,7 +1147,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 40), // 👈 чуть больше отступ
 
                   GestureDetector(
                     onLongPress: () {
@@ -1176,7 +1176,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
 
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1188,7 +1188,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
 
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1214,21 +1214,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: Container(
               padding: EdgeInsets.only(
                 top: statusBarHeight,
-                left: 16,
-                right: 16,
+                left: 8,
+                right: 8,
               ),
-              height: 60 + statusBarHeight,
+              height: 44 + statusBarHeight, // 👈 уменьшена высота
               color: Colors.black.withOpacity(0.8),
               alignment: Alignment.centerLeft,
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  ),
-                  const Spacer(),
-                  const Text('Редактирование', style: TextStyle(color: Colors.white)),
-                ],
+              child: IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
               ),
             ),
           ),
@@ -1253,7 +1247,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 }
-
 // Изменить чат
 
 class RenameChatScreen extends StatefulWidget {
