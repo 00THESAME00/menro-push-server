@@ -1146,7 +1146,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                     ),
                   ),
+
                   const SizedBox(height: 40),
+
+                  // 🔲 Линия-граница между блоками
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Container(
+                      height: 1,
+                      color: const Color(0xFF3E3E3E),
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
                   GestureDetector(
                     onLongPress: () {
                       Clipboard.setData(ClipboardData(text: widget.userId));
@@ -1175,7 +1188,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                     ),
                   ),
+
                   const SizedBox(height: 32),
+
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: TextField(
@@ -1186,7 +1201,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                     ),
                   ),
+
                   const SizedBox(height: 32),
+
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: TextField(
@@ -1214,7 +1231,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 icon: const Icon(
                   Icons.arrow_back_ios_new,
                   color: Colors.white,
-                  size: 24, // тот же, как в профиле
+                  size: 24,
                 ),
                 onPressed: () => Navigator.pop(context),
               ),
