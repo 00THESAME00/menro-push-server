@@ -1147,18 +1147,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 24),
 
-                  // 🔲 Линия-граница между блоками
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Container(
-                      height: 1,
-                      color: const Color(0xFF3E3E3E),
+                  // 🔲 Divider в стиле профиля: отступы сверху и снизу
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Divider(
+                      color: Color(0xFF3E3E3E),
+                      thickness: 1,
+                      height: 32,
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 8),
 
                   GestureDetector(
                     onLongPress: () {
