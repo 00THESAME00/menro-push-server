@@ -1147,15 +1147,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
 
-                  // 🔲 Divider в стиле профиля: отступы сверху и снизу
+                  // 🔲 Divider по стилю профиля — с правками
                   const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    padding: EdgeInsets.symmetric(horizontal: 35),
                     child: Divider(
-                      color: Color(0xFF3E3E3E),
+                      color: Color(0xFF474747),
                       thickness: 1,
-                      height: 32,
+                      height: 24,
                     ),
                   ),
 
@@ -1222,7 +1222,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ),
 
-          // 🔙 Унифицированная кнопка назад
+          // 🔙 Кнопка назад в стиле профиля
           Positioned(
             top: statusBarHeight + 12,
             left: 12,
