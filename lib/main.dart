@@ -1104,7 +1104,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Аватар + Кнопка изменить
+                  // 🖼️ Аватар + кнопка изменить
                   SizedBox(
                     width: 180,
                     height: 110,
@@ -1148,7 +1148,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                   const SizedBox(height: 16),
 
-                  // 🔲 Линия — Divider шире, поля чуть уже
+                  // 🔲 Линия-дивидер
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 35),
                     child: Divider(
@@ -1160,11 +1160,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                   const SizedBox(height: 8),
 
-                  // Код пользователя
+                  // 👤 User ID
                   Align(
                     alignment: Alignment.center,
                     child: SizedBox(
-                      width: 320,
+                      width: 310,
                       child: GestureDetector(
                         onLongPress: () {
                           Clipboard.setData(ClipboardData(text: widget.userId));
@@ -1197,11 +1197,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                   const SizedBox(height: 32),
 
-                  // Поле "Имя"
+                  // 📛 Поле имени
                   Align(
                     alignment: Alignment.center,
                     child: SizedBox(
-                      width: 320,
+                      width: 310,
                       child: TextField(
                         controller: nameController,
                         decoration: const InputDecoration(
@@ -1214,11 +1214,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                   const SizedBox(height: 32),
 
-                  // Поле "Обо мне"
+                  // 📘 Поле "Обо мне"
                   Align(
                     alignment: Alignment.center,
                     child: SizedBox(
-                      width: 320,
+                      width: 310,
                       child: TextField(
                         controller: aboutController,
                         maxLines: 4,
