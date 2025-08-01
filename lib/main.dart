@@ -1121,7 +1121,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                         ),
                         Positioned(
-                          bottom: -16, // ✨ опущено
+                          bottom: -16,
                           right: -60,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
@@ -1150,7 +1150,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                   // 🔲 Линия-дивидер
                   const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24), // ✨ расширено
+                    padding: EdgeInsets.symmetric(horizontal: 24),
                     child: Divider(
                       color: Color(0xFF474747),
                       thickness: 1,
@@ -1164,33 +1164,37 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   Align(
                     alignment: Alignment.center,
                     child: SizedBox(
-                      width: 320, // ✨ шире поле
-                      child: GestureDetector(
-                        onLongPress: () {
-                          Clipboard.setData(ClipboardData(text: widget.userId));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('ID скопирован'),
-                              duration: Duration(seconds: 1),
+                      width: 320,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          GestureDetector(
+                            onLongPress: () {
+                              Clipboard.setData(ClipboardData(text: widget.userId));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('ID скопирован'), duration: Duration(seconds: 1)),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade600),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Text('Код:', style: TextStyle(color: Colors.grey)),
+                                  const SizedBox(width: 8),
+                                  Text(widget.userId, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  const Spacer(),
+                                  const Icon(Icons.copy, size: 18, color: Colors.grey),
+                                ],
+                              ),
                             ),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade600),
-                            borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Row(
-                            children: [
-                              const Text('Код:', style: TextStyle(color: Colors.grey)),
-                              const SizedBox(width: 8),
-                              Text(widget.userId, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              const Spacer(),
-                              const Icon(Icons.copy, size: 18, color: Colors.grey),
-                            ],
-                          ),
-                        ),
+                          const SizedBox(height: 6),
+                          const Text('Ваш личный код', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        ],
                       ),
                     ),
                   ),
@@ -1201,13 +1205,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   Align(
                     alignment: Alignment.center,
                     child: SizedBox(
-                      width: 320, // ✨ шире поле
-                      child: TextField(
-                        controller: nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Имя',
-                          border: OutlineInputBorder(),
-                        ),
+                      width: 320,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextField(
+                            controller: nameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Имя',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          const Text('Имя пользователя', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        ],
                       ),
                     ),
                   ),
@@ -1218,15 +1229,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   Align(
                     alignment: Alignment.center,
                     child: SizedBox(
-                      width: 320, // ✨ шире поле
-                      child: TextField(
-                        controller: aboutController,
-                        maxLines: 4,
-                        maxLength: 100,
-                        decoration: const InputDecoration(
-                          labelText: 'Обо мне',
-                          border: OutlineInputBorder(),
-                        ),
+                      width: 320,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextField(
+                            controller: aboutController,
+                            maxLines: 4,
+                            maxLength: 100,
+                            decoration: const InputDecoration(
+                              labelText: 'Обо мне',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          const Text('Расскажите о себе', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        ],
                       ),
                     ),
                   ),
