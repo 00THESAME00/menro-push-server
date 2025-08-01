@@ -1121,7 +1121,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                         ),
                         Positioned(
-                          bottom: -16, // ✨ изменено на -16
+                          bottom: -16, // ✨ опущено
                           right: -60,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
@@ -1150,7 +1150,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                   // 🔲 Линия-дивидер
                   const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 35),
+                    padding: EdgeInsets.symmetric(horizontal: 24), // ✨ расширено
                     child: Divider(
                       color: Color(0xFF474747),
                       thickness: 1,
@@ -1164,7 +1164,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   Align(
                     alignment: Alignment.center,
                     child: SizedBox(
-                      width: 280,
+                      width: 320, // ✨ шире поле
                       child: GestureDetector(
                         onLongPress: () {
                           Clipboard.setData(ClipboardData(text: widget.userId));
@@ -1201,7 +1201,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   Align(
                     alignment: Alignment.center,
                     child: SizedBox(
-                      width: 280,
+                      width: 320, // ✨ шире поле
                       child: TextField(
                         controller: nameController,
                         decoration: const InputDecoration(
@@ -1218,7 +1218,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   Align(
                     alignment: Alignment.center,
                     child: SizedBox(
-                      width: 280,
+                      width: 320, // ✨ шире поле
                       child: TextField(
                         controller: aboutController,
                         maxLines: 4,
