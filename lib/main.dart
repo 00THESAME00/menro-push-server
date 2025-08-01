@@ -1094,6 +1094,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final double bottomInset = MediaQuery.of(context).padding.bottom + 16;
+    final int aboutLength = aboutController.text.length;
 
     return Scaffold(
       backgroundColor: const Color(0xFF212121),
@@ -1238,6 +1239,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             controller: aboutController,
                             maxLines: 4,
                             maxLength: 100,
+                            onChanged: (_) => setState(() {}),
                             decoration: const InputDecoration(
                               labelText: 'Обо мне',
                               border: OutlineInputBorder(),
@@ -1248,14 +1250,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.baseline,
                             textBaseline: TextBaseline.alphabetic,
-                            children: const [
-                              Text(
+                            children: [
+                              const Text(
                                 'Расскажите о себе',
                                 style: TextStyle(color: Colors.grey, fontSize: 12),
                               ),
                               Text(
-                                '0/100',
-                                style: TextStyle(color: Colors.grey, fontSize: 12),
+                                '$aboutLength/100',
+                                style: const TextStyle(color: Colors.grey, fontSize: 12),
                               ),
                             ],
                           ),
