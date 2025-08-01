@@ -1102,54 +1102,53 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: SingleChildScrollView(
               padding: const EdgeInsets.only(top: 120, bottom: 100),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Center(
-                    child: SizedBox(
-                      width: 180,
-                      height: 110,
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          const Positioned.fill(
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: CircleAvatar(
-                                radius: 50,
-                                backgroundColor: Colors.grey,
-                              ),
+                  // Аватар + Кнопка изменить
+                  SizedBox(
+                    width: 180,
+                    height: 110,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        const Positioned.fill(
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: CircleAvatar(
+                              radius: 50,
+                              backgroundColor: Colors.grey,
                             ),
                           ),
-                          Positioned(
-                            bottom: -4,
-                            right: -60,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF353537),
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                minimumSize: const Size(0, 0),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                elevation: 0,
+                        ),
+                        Positioned(
+                          bottom: -4,
+                          right: -60,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF353537),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              minimumSize: const Size(0, 0),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                              onPressed: () {
-                                print('Изменить аватар');
-                              },
-                              child: const Text(
-                                'Изменить',
-                                style: TextStyle(color: Colors.white, fontSize: 14),
-                              ),
+                              elevation: 0,
+                            ),
+                            onPressed: () {
+                              print('Изменить аватар');
+                            },
+                            child: const Text(
+                              'Изменить',
+                              style: TextStyle(color: Colors.white, fontSize: 14),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
 
                   const SizedBox(height: 16),
 
-                  // 🔲 Divider по стилю профиля — с правками
+                  // 🔲 Линия — Divider шире, поля чуть уже
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 35),
                     child: Divider(
@@ -1161,59 +1160,73 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                   const SizedBox(height: 8),
 
-                  GestureDetector(
-                    onLongPress: () {
-                      Clipboard.setData(ClipboardData(text: widget.userId));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('ID скопирован'),
-                          duration: Duration(seconds: 1),
+                  // Код пользователя
+                  Align(
+                    alignment: Alignment.center,
+                    child: SizedBox(
+                      width: 320,
+                      child: GestureDetector(
+                        onLongPress: () {
+                          Clipboard.setData(ClipboardData(text: widget.userId));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('ID скопирован'),
+                              duration: Duration(seconds: 1),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade600),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              const Text('Код:', style: TextStyle(color: Colors.grey)),
+                              const SizedBox(width: 8),
+                              Text(widget.userId, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              const Spacer(),
+                              const Icon(Icons.copy, size: 18, color: Colors.grey),
+                            ],
+                          ),
                         ),
-                      );
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade600),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          const Text('Код:', style: TextStyle(color: Colors.grey)),
-                          const SizedBox(width: 8),
-                          Text(widget.userId, style: const TextStyle(fontWeight: FontWeight.bold)),
-                          const Spacer(),
-                          const Icon(Icons.copy, size: 18, color: Colors.grey),
-                        ],
                       ),
                     ),
                   ),
 
                   const SizedBox(height: 32),
 
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: TextField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Имя',
-                        border: OutlineInputBorder(),
+                  // Поле "Имя"
+                  Align(
+                    alignment: Alignment.center,
+                    child: SizedBox(
+                      width: 320,
+                      child: TextField(
+                        controller: nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Имя',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
                     ),
                   ),
 
                   const SizedBox(height: 32),
 
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: TextField(
-                      controller: aboutController,
-                      maxLines: 4,
-                      maxLength: 100,
-                      decoration: const InputDecoration(
-                        labelText: 'Обо мне',
-                        border: OutlineInputBorder(),
+                  // Поле "Обо мне"
+                  Align(
+                    alignment: Alignment.center,
+                    child: SizedBox(
+                      width: 320,
+                      child: TextField(
+                        controller: aboutController,
+                        maxLines: 4,
+                        maxLength: 100,
+                        decoration: const InputDecoration(
+                          labelText: 'Обо мне',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
                     ),
                   ),
@@ -1222,18 +1235,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ),
 
-          // 🔙 Кнопка назад в стиле профиля
+          // 🔙 Кнопка назад
           Positioned(
             top: statusBarHeight + 12,
             left: 12,
             child: Material(
               color: Colors.transparent,
               child: IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios_new,
-                  color: Colors.white,
-                  size: 24,
-                ),
+                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 24),
                 onPressed: () => Navigator.pop(context),
               ),
             ),
