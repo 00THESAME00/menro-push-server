@@ -1164,7 +1164,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   Align(
                     alignment: Alignment.center,
                     child: SizedBox(
-                      width: 310,
+                      width: 280,
                       child: GestureDetector(
                         onLongPress: () {
                           Clipboard.setData(ClipboardData(text: widget.userId));
@@ -1201,7 +1201,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   Align(
                     alignment: Alignment.center,
                     child: SizedBox(
-                      width: 310,
+                      width: 280,
                       child: TextField(
                         controller: nameController,
                         decoration: const InputDecoration(
@@ -1218,7 +1218,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   Align(
                     alignment: Alignment.center,
                     child: SizedBox(
-                      width: 310,
+                      width: 280,
                       child: TextField(
                         controller: aboutController,
                         maxLines: 4,
