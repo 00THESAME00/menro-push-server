@@ -1121,7 +1121,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                         ),
                         Positioned(
-                          bottom: -4,
+                          bottom: -16, // ✨ изменено на -16
                           right: -60,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
