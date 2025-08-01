@@ -1093,6 +1093,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final double bottomInset = MediaQuery.of(context).padding.bottom + 16;
 
     return Scaffold(
       backgroundColor: const Color(0xFF212121),
@@ -1100,7 +1101,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         children: [
           Positioned.fill(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.only(top: 120, bottom: 100),
+              padding: EdgeInsets.only(top: 120, bottom: bottomInset),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
