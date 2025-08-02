@@ -1225,11 +1225,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             controller: aboutController,
                             maxLines: 4,
                             maxLength: 100,
+                            onChanged: (_) => setState(() {}),
                             decoration: const InputDecoration(
                               labelText: 'Обо мне',
                               border: OutlineInputBorder(),
-                              counterText: 'Расскажите о себе', // 👈 Комментарий вместо стандартного счётчика
+                              counterText: '',
                             ),
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              const Text(
+                                'Расскажите о себе',
+                                style: TextStyle(color: Colors.grey, fontSize: 12),
+                              ),
+                              Text(
+                                '${aboutController.text.length}/100',
+                                style: const TextStyle(color: Colors.grey, fontSize: 12),
+                              ),
+                            ],
                           ),
                         ],
                       ),
