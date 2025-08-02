@@ -1093,196 +1093,199 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
-    final double bottomInset = MediaQuery.of(context).padding.bottom + 16;
+    final double bottomInset = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
       backgroundColor: const Color(0xFF212121),
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.only(top: 120, bottom: bottomInset),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 180,
-                    height: 110,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        const Positioned.fill(
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: CircleAvatar(
-                              radius: 50,
-                              backgroundColor: Colors.grey,
+      body: SafeArea(
+        bottom: false,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(top: 120, bottom: 80),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 180,
+                      height: 110,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          const Positioned.fill(
+                            child: Align(
+                              alignment: Alignment.center,
+                              child: CircleAvatar(
+                                radius: 50,
+                                backgroundColor: Colors.grey,
+                              ),
                             ),
                           ),
+                          Positioned(
+                            bottom: -16,
+                            right: -60,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF353537),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                minimumSize: const Size(0, 0),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                elevation: 0,
+                              ),
+                              onPressed: () {
+                                print('Изменить аватар');
+                              },
+                              child: const Text(
+                                'Изменить',
+                                style: TextStyle(color: Colors.white, fontSize: 14),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 24),
+                      child: Divider(
+                        color: Color(0xFF474747),
+                        thickness: 1,
+                        height: 24,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.center,
+                      child: SizedBox(
+                        width: 320,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            GestureDetector(
+                              onLongPress: () {
+                                Clipboard.setData(ClipboardData(text: widget.userId));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('ID скопирован'), duration: Duration(seconds: 1)),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey.shade600),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Text('Код:', style: TextStyle(color: Colors.grey)),
+                                    const SizedBox(width: 8),
+                                    Text(widget.userId, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    const Spacer(),
+                                    const Icon(Icons.copy, size: 18, color: Colors.grey),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            const Text('Ваш личный код', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                          ],
                         ),
-                        Positioned(
-                          bottom: -16,
-                          right: -60,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF353537),
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              minimumSize: const Size(0, 0),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    Align(
+                      alignment: Alignment.center,
+                      child: SizedBox(
+                        width: 320,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            TextField(
+                              controller: nameController,
+                              decoration: const InputDecoration(
+                                labelText: 'Имя',
+                                border: OutlineInputBorder(),
                               ),
-                              elevation: 0,
                             ),
-                            onPressed: () {
-                              print('Изменить аватар');
-                            },
-                            child: const Text(
-                              'Изменить',
-                              style: TextStyle(color: Colors.white, fontSize: 14),
-                            ),
-                          ),
+                            const SizedBox(height: 6),
+                            const Text('Имя пользователя', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24),
-                    child: Divider(
-                      color: Color(0xFF474747),
-                      thickness: 1,
-                      height: 24,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.center,
-                    child: SizedBox(
-                      width: 320,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          GestureDetector(
-                            onLongPress: () {
-                              Clipboard.setData(ClipboardData(text: widget.userId));
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('ID скопирован'), duration: Duration(seconds: 1)),
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey.shade600),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Text('Код:', style: TextStyle(color: Colors.grey)),
-                                  const SizedBox(width: 8),
-                                  Text(widget.userId, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                  const Spacer(),
-                                  const Icon(Icons.copy, size: 18, color: Colors.grey),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          const Text('Ваш личный код', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                        ],
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 32),
-                  Align(
-                    alignment: Alignment.center,
-                    child: SizedBox(
-                      width: 320,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          TextField(
-                            controller: nameController,
-                            decoration: const InputDecoration(
-                              labelText: 'Имя',
-                              border: OutlineInputBorder(),
+                    const SizedBox(height: 32),
+                    Align(
+                      alignment: Alignment.center,
+                      child: SizedBox(
+                        width: 320,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            TextField(
+                              controller: aboutController,
+                              maxLines: 4,
+                              maxLength: 100,
+                              onChanged: (_) => setState(() {}),
+                              decoration: const InputDecoration(
+                                labelText: 'Обо мне',
+                                border: OutlineInputBorder(),
+                                counterText: '',
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 6),
-                          const Text('Имя пользователя', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                        ],
+                            const SizedBox(height: 6),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                              textBaseline: TextBaseline.alphabetic,
+                              children: [
+                                const Text(
+                                  'Расскажите о себе',
+                                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                                ),
+                                Text(
+                                  '${aboutController.text.length}/100',
+                                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 32),
-                  Align(
-                    alignment: Alignment.center,
-                    child: SizedBox(
-                      width: 320,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          TextField(
-                            controller: aboutController,
-                            maxLines: 4,
-                            maxLength: 100,
-                            onChanged: (_) => setState(() {}),
-                            decoration: const InputDecoration(
-                              labelText: 'Обо мне',
-                              border: OutlineInputBorder(),
-                              counterText: '',
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.baseline,
-                            textBaseline: TextBaseline.alphabetic,
-                            children: [
-                              const Text(
-                                'Расскажите о себе',
-                                style: TextStyle(color: Colors.grey, fontSize: 12),
-                              ),
-                              Text(
-                                '${aboutController.text.length}/100',
-                                style: const TextStyle(color: Colors.grey, fontSize: 12),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-          Positioned(
-            top: statusBarHeight + 12,
-            left: 12,
-            child: Material(
-              color: Colors.transparent,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 24),
-                onPressed: () => Navigator.pop(context),
+            Positioned(
+              top: statusBarHeight + 12,
+              left: 12,
+              child: Material(
+                color: Colors.transparent,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 24),
+                  onPressed: () => Navigator.pop(context),
+                ),
               ),
             ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              color: Colors.black.withOpacity(0.85),
-              child: ElevatedButton(
-                onPressed: () {
-                  print('Сохраняем...');
-                },
-                child: const Text('Сохранить'),
+            Positioned(
+              bottom: bottomInset,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                color: Colors.black.withOpacity(0.85),
+                child: ElevatedButton(
+                  onPressed: () {
+                    print('Сохраняем...');
+                  },
+                  child: const Text('Сохранить'),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
