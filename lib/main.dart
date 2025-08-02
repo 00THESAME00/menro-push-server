@@ -1094,7 +1094,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final double bottomInset = MediaQuery.of(context).padding.bottom + 16;
-    final int aboutLength = aboutController.text.length;
 
     return Scaffold(
       backgroundColor: const Color(0xFF212121),
@@ -1106,7 +1105,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // 🖼️ Аватар + кнопка изменить
                   SizedBox(
                     width: 180,
                     height: 110,
@@ -1147,10 +1145,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
-                  // 🔲 Линия-дивидер
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 24),
                     child: Divider(
@@ -1159,10 +1154,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       height: 24,
                     ),
                   ),
-
                   const SizedBox(height: 8),
-
-                  // 👤 User ID
                   Align(
                     alignment: Alignment.center,
                     child: SizedBox(
@@ -1200,10 +1192,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 32),
-
-                  // 📛 Поле имени
                   Align(
                     alignment: Alignment.center,
                     child: SizedBox(
@@ -1224,10 +1213,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 32),
-
-                  // 📘 Поле "Обо мне"
                   Align(
                     alignment: Alignment.center,
                     child: SizedBox(
@@ -1239,27 +1225,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             controller: aboutController,
                             maxLines: 4,
                             maxLength: 100,
-                            onChanged: (_) => setState(() {}),
                             decoration: const InputDecoration(
                               labelText: 'Обо мне',
                               border: OutlineInputBorder(),
+                              counterText: 'Расскажите о себе', // 👈 Комментарий вместо стандартного счётчика
                             ),
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.baseline,
-                            textBaseline: TextBaseline.alphabetic,
-                            children: [
-                              const Text(
-                                'Расскажите о себе',
-                                style: TextStyle(color: Colors.grey, fontSize: 12),
-                              ),
-                              Text(
-                                '$aboutLength/100',
-                                style: const TextStyle(color: Colors.grey, fontSize: 12),
-                              ),
-                            ],
                           ),
                         ],
                       ),
@@ -1269,8 +1239,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
           ),
-
-          // 🔙 Кнопка назад
           Positioned(
             top: statusBarHeight + 12,
             left: 12,
@@ -1282,8 +1250,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
           ),
-
-          // ✅ Кнопка «Сохранить»
           Positioned(
             bottom: 0,
             left: 0,
