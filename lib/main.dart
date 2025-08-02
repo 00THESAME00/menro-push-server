@@ -1273,12 +1273,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               bottom: bottomInset,
               left: 0,
               right: 0,
-              child: Container(
+              child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                color: Colors.black.withOpacity(0.85),
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF212121),
+                    backgroundColor: const Color(0xFF353537),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
