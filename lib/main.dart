@@ -1093,12 +1093,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _saveProfile() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null || uid != widget.userId) return;
+    print('🧾 Получен uid из FirebaseAuth: $uid');
+    print('🔗 widget.userId: ${widget.userId}');
+
+    if (uid == null || uid != widget.userId) {
+      print('⛔ UID не совпадает или отсутствует — сохранение отменено');
+      return;
+    }
 
     final name = nameController.text.trim();
     final about = aboutController.text.trim();
 
+    print('📋 Введено имя: "$name"');
+    print('📋 Введено описание: "$about"');
+
     if (name.isEmpty || about.isEmpty) {
+      print('⚠️ Одно из полей пустое — показываем SnackBar');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Заполните все поля')),
       );
@@ -1106,18 +1116,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
 
     final docRef = FirebaseFirestore.instance.collection('users').doc(uid);
+    print('🔍 Проверяем существование документа users/$uid');
 
     try {
-      await docRef.update({
-        'name': name,
-        'aboutMe': about, // используется в ProfileScreen
-      });
+      final docSnapshot = await docRef.get();
+      if (!docSnapshot.exists) {
+        print('🆕 Документ не существует — создаём новый');
+        await docRef.set({
+          'name': name,
+          'aboutMe': about,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        print('✅ Профиль создан');
+      } else {
+        print('✏️ Документ существует — обновляем');
+        await docRef.update({
+          'name': name,
+          'aboutMe': about,
+        });
+        print('✅ Профиль обновлён');
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Профиль обновлён')),
+        const SnackBar(content: Text('Профиль сохранён')),
       );
-      Navigator.pop(context); // возвращение на профиль
+      Navigator.pop(context);
     } catch (error) {
+      print('❌ Ошибка Firestore: $error');
+      print('🧠 Тип ошибки: ${error.runtimeType}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Ошибка: ${error.toString()}')),
       );
@@ -1225,58 +1251,52 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    Align(
-                      alignment: Alignment.center,
-                      child: SizedBox(
-                        width: 320,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            TextField(
-                              controller: nameController,
-                              decoration: const InputDecoration(
-                                labelText: 'Имя',
-                                border: OutlineInputBorder(),
-                              ),
+                    SizedBox(
+                      width: 320,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextField(
+                            controller: nameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Имя',
+                              border: OutlineInputBorder(),
                             ),
-                            const SizedBox(height: 6),
-                            const Text('Имя пользователя', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 6),
+                          const Text('Имя пользователя', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 32),
-                    Align(
-                      alignment: Alignment.center,
-                      child: SizedBox(
-                        width: 320,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            TextField(
-                              controller: aboutController,
-                              maxLines: 4,
-                              maxLength: 100,
-                              onChanged: (_) => setState(() {}),
-                              decoration: const InputDecoration(
-                                labelText: 'Обо мне',
-                                border: OutlineInputBorder(),
-                                counterText: '',
-                              ),
+                    SizedBox(
+                      width: 320,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextField(
+                            controller: aboutController,
+                            maxLines: 4,
+                            maxLength: 100,
+                            onChanged: (_) => setState(() {}),
+                            decoration: const InputDecoration(
+                              labelText: 'Обо мне',
+                              border: OutlineInputBorder(),
+                              counterText: '',
                             ),
-                            const SizedBox(height: 6),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
-                              children: [
-                                const Text('Расскажите о себе', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                                Text('${aboutController.text.length}/100',
-                                  style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                              ],
-                            ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              const Text('Расскажите о себе', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                              Text('${aboutController.text.length}/100',
+                                style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ],
