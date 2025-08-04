@@ -9,6 +9,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -1090,6 +1091,39 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController aboutController = TextEditingController();
   String avatarUrl = 'https://example.com/avatar.jpg';
 
+  Future<void> _saveProfile() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null || uid != widget.userId) return;
+
+    final name = nameController.text.trim();
+    final about = aboutController.text.trim();
+
+    if (name.isEmpty || about.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Заполните все поля')),
+      );
+      return;
+    }
+
+    final docRef = FirebaseFirestore.instance.collection('users').doc(uid);
+
+    try {
+      await docRef.update({
+        'name': name,
+        'aboutMe': about, // используется в ProfileScreen
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Профиль обновлён')),
+      );
+      Navigator.pop(context); // возвращение на профиль
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка: ${error.toString()}')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
@@ -1150,11 +1184,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     const SizedBox(height: 16),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 24),
-                      child: Divider(
-                        color: Color(0xFF474747),
-                        thickness: 1,
-                        height: 24,
-                      ),
+                      child: Divider(color: Color(0xFF474747), thickness: 1, height: 24),
                     ),
                     const SizedBox(height: 8),
                     Align(
@@ -1240,14 +1270,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               crossAxisAlignment: CrossAxisAlignment.baseline,
                               textBaseline: TextBaseline.alphabetic,
                               children: [
-                                const Text(
-                                  'Расскажите о себе',
-                                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                                ),
-                                Text(
-                                  '${aboutController.text.length}/100',
-                                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                                ),
+                                const Text('Расскажите о себе', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                Text('${aboutController.text.length}/100',
+                                  style: const TextStyle(color: Colors.grey, fontSize: 12)),
                               ],
                             ),
                           ],
@@ -1281,14 +1306,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(11),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
                     elevation: 0,
                   ),
-                  onPressed: () {
-                    print('Сохраняем...');
-                  },
+                  onPressed: _saveProfile,
                   child: const Text('Сохранить'),
                 ),
               ),
