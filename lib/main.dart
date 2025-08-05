@@ -1126,10 +1126,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         print('✅ Профиль создан');
       } else {
         print('✏️ Документ существует — обновляем');
-        await docRef.update({
-          'name': name,
-          'aboutMe': about,
-        });
+        final oldData = docSnapshot.data() ?? {};
+        final updates = <String, dynamic>{};
+
+        if (name.isNotEmpty && name != oldData['name']) {
+          updates['name'] = name;
+        }
+        if (about.isNotEmpty && about != oldData['aboutMe']) {
+          updates['aboutMe'] = about;
+        }
+
+        if (updates.isEmpty) {
+          print('🛑 Нет изменений — ничего не отправляем в Firestore');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Нет изменений')),
+          );
+          return;
+        }
+
+        await docRef.update(updates);
         print('✅ Профиль обновлён');
       }
 
