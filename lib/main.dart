@@ -1090,6 +1090,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController aboutController = TextEditingController();
   String avatarUrl = 'https://example.com/avatar.jpg';
 
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final docRef = FirebaseFirestore.instance.collection('users').doc(widget.userId);
+    print('📥 Загружаем данные профиля из Firestore users/${widget.userId}');
+
+    try {
+      final snapshot = await docRef.get();
+      final data = snapshot.data();
+      if (data != null) {
+        nameController.text = data['name'] ?? '';
+        aboutController.text = data['aboutMe'] ?? '';
+        print('📋 Имя из Firestore: "${nameController.text}"');
+        print('📋 О себе из Firestore: "${aboutController.text}"');
+      } else {
+        print('🛑 Документ не найден — поля останутся пустыми');
+      }
+    } catch (error) {
+      print('❌ Ошибка при загрузке данных: $error');
+    }
+  }
+
   Future<void> _saveProfile() async {
     final uid = widget.userId;
     print('🧾 Получен uid из FirebaseAuth: $uid');
