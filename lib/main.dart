@@ -9,7 +9,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -1103,13 +1102,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     print('📋 Введено имя: "$name"');
     print('📋 Введено описание: "$about"');
 
-    if (name.isEmpty || about.isEmpty) {
-      print('⚠️ Одно из полей пустое — показываем SnackBar');
+    final updates = <String, dynamic>{};
+    if (name.isNotEmpty) updates['name'] = name;
+    if (about.isNotEmpty) updates['aboutMe'] = about;
+
+    if (updates.isEmpty) {
+      print('⚠️ Ни одно поле не заполнено — показываем SnackBar');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Заполните все поля')),
+        const SnackBar(content: Text('Введите хотя бы одно поле')),
       );
       return;
-    }
+}
 
     final docRef = FirebaseFirestore.instance.collection('users').doc(uid);
     print('🔍 Проверяем существование документа users/$uid');
@@ -1118,11 +1121,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final docSnapshot = await docRef.get();
       if (!docSnapshot.exists) {
         print('🆕 Документ не существует — создаём новый');
-        await docRef.set({
-          'name': name,
-          'aboutMe': about,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
+        updates['createdAt'] = FieldValue.serverTimestamp();
+        await docRef.set(updates);
         print('✅ Профиль создан');
       } else {
         print('✏️ Документ существует — обновляем');
@@ -1163,6 +1163,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+//граница1
                     SizedBox(
                       width: 180,
                       height: 110,
@@ -1248,7 +1249,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     const SizedBox(height: 32),
                     SizedBox(
-                      width: 320,
+                      width: 320, 
+//граница2
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1335,7 +1337,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ),
     );
   }
-}
+}  //граница3
 // Изменить чат
 
 class RenameChatScreen extends StatefulWidget {
