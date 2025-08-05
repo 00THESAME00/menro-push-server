@@ -1092,14 +1092,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String avatarUrl = 'https://example.com/avatar.jpg';
 
   Future<void> _saveProfile() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final uid = widget.userId;
     print('🧾 Получен uid из FirebaseAuth: $uid');
     print('🔗 widget.userId: ${widget.userId}');
 
-    if (uid == null || uid != widget.userId) {
-      print('⛔ UID не совпадает или отсутствует — сохранение отменено');
-      return;
-    }
 
     final name = nameController.text.trim();
     final about = aboutController.text.trim();
@@ -1465,6 +1461,7 @@ class _RenameChatScreenState extends State<RenameChatScreen> {
     );
   }
 }
+
 
 // 4. Основной экран добавления друга
 class AddFriendScreen extends StatefulWidget {
