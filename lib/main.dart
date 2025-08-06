@@ -819,7 +819,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   String? userName;
   String? userStatus;
   String? aboutMe;
-  String version = 'Beta 0.1.0';
+  String version = '0.2.6';
 
   @override
   void initState() {
@@ -894,6 +894,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
+//ч1                    
                     // Имя
                     Text(
                       displayName,
@@ -983,8 +984,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ],
                 ),
               ),
+//ч2
             ),
-
             // 2) Верхние кнопки «меню» и «редактировать»
             AnimatedOpacity(
               duration: const Duration(milliseconds: 300),
@@ -1032,13 +1033,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         ),
                         IconButton(
                           icon: const Icon(Icons.edit, color: Colors.white),
-                          onPressed: () {
-                            Navigator.push(
+                          onPressed: () async {
+                            final updated = await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (_) => EditProfileScreen(userId: widget.userId),
                               ),
                             );
+                            if (updated == true) {
+                              _loadUserData(); // повторная загрузка
+                            }
                           },
                         ),
                       ],
@@ -1075,6 +1079,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 }
+//ч3
 
 class EditProfileScreen extends StatefulWidget {
   final String userId;
@@ -1177,7 +1182,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Профиль сохранён')),
       );
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } catch (error) {
       print('❌ Ошибка Firestore: $error');
       print('🧠 Тип ошибки: ${error.runtimeType}');
