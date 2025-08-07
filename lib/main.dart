@@ -842,15 +842,24 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         .collection('users')
         .doc(widget.userId)
         .get();
-    if (!doc.exists) return;
+
+    if (!doc.exists) {
+      debugPrint('❌ Документ пользователя не найден');
+      return;
+    }
+
     final data = doc.data();
+    debugPrint('📥 Данные из Firestore: $data');
+
     if (!mounted) return;
     setState(() {
       avatarUrl = data?['avatarUrl'];
-      userName  = data?['name'];
-      userStatus= data?['status'];
-      aboutMe   = data?['aboutMe'];
-      version   = data?['version'] ?? version;
+      debugPrint('📷 avatarUrl из Firestore: $avatarUrl');
+
+      userName   = data?['name'];
+      userStatus = data?['status'];
+      aboutMe    = data?['aboutMe'];
+      version    = data?['version'] ?? version;
     });
   }
 
@@ -897,17 +906,26 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
                       final picker = ImagePicker();
                       final picked = await picker.pickImage(source: ImageSource.gallery);
-                      if (picked == null) return;
+                      if (picked == null) {
+                        debugPrint('📂 Фото не выбрано');
+                        return;
+                      }
 
                       final file = File(picked.path);
-                      final downloadUrl = await _uploadAvatar(file);
+                      debugPrint('📁 Путь к файлу: ${file.path}');
 
+                      final downloadUrl = await _uploadAvatar(file);
+                      debugPrint('📸 Ссылка на загруженное фото: $downloadUrl');
+
+                      debugPrint('👤 userId: ${widget.userId}');
                       await FirebaseFirestore.instance
                           .collection('users')
                           .doc(widget.userId)
                           .update({'avatarUrl': downloadUrl});
+                      debugPrint('✅ avatarUrl сохранён в Firestore');
 
                       if (!mounted) return;
+                      debugPrint('🔄 avatarUrl обновлён в UI');
                       setState(() => avatarUrl = downloadUrl);
 
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -917,17 +935,24 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     _menuItem('🗑️ Удалить фотографию', () async {
                       entry.remove();
 
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(widget.userId)
-                          .update({'avatarUrl': FieldValue.delete()});
+                      try {
+                        await FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(widget.userId)
+                            .update({'avatarUrl': FieldValue.delete()});
 
-                      if (!mounted) return;
-                      setState(() => avatarUrl = null);
+                        if (!mounted) return;
+                        setState(() => avatarUrl = null);
 
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Фото удалено')),
-                      );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Ссылка на фото удалена')),
+                        );
+                      } catch (e) {
+                        debugPrint('❌ Ошибка удаления avatarUrl: $e');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Ошибка удаления фото: $e')),
+                        );
+                      }
                     }),
                     _menuItem('🚪 Выход', () {
                       entry.remove();
