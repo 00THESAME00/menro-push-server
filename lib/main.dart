@@ -9,6 +9,9 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -813,6 +816,7 @@ class UserProfileScreen extends StatefulWidget {
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
   final ScrollController _scrollController = ScrollController();
+  final GlobalKey _menuIconKey = GlobalKey();
   bool showTopIcons = true;
 
   String? avatarUrl;
@@ -848,6 +852,115 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       aboutMe   = data?['aboutMe'];
       version   = data?['version'] ?? version;
     });
+  }
+
+  Future<String> _uploadAvatar(File file) async {
+    final ref = FirebaseStorage.instance
+        .ref('avatars/${widget.userId}.jpg');
+
+    await ref.putFile(file);
+    return await ref.getDownloadURL();
+  }
+
+
+  void _showTopMenu(BuildContext context) {
+  final overlay = Overlay.of(context);
+  final renderBox = _menuIconKey.currentContext?.findRenderObject() as RenderBox?;
+  if (renderBox == null) return;
+
+  final offset = renderBox.localToGlobal(Offset.zero);
+
+  late OverlayEntry entry;
+
+  entry = OverlayEntry(
+    builder: (context) => GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () => entry.remove(), // ❗ Закрытие при тапе вне меню
+      child: Stack(
+        children: [
+          Positioned(
+            top: offset.dy + 40,
+            right: 16,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                width: 220,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF343434),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _menuItem('📷 Выбрать фотографию', () async {
+                      entry.remove();
+
+                      final picker = ImagePicker();
+                      final picked = await picker.pickImage(source: ImageSource.gallery);
+                      if (picked == null) return;
+
+                      final file = File(picked.path);
+                      final downloadUrl = await _uploadAvatar(file);
+
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(widget.userId)
+                          .update({'avatarUrl': downloadUrl});
+
+                      if (!mounted) return;
+                      setState(() => avatarUrl = downloadUrl);
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Фото успешно загружено')),
+                      );
+                    }),
+                    _menuItem('🗑️ Удалить фотографию', () async {
+                      entry.remove();
+
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(widget.userId)
+                          .update({'avatarUrl': FieldValue.delete()});
+
+                      if (!mounted) return;
+                      setState(() => avatarUrl = null);
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Фото удалено')),
+                      );
+                    }),
+                    _menuItem('🚪 Выход', () {
+                      entry.remove();
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => EnterYourIdScreen()),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+
+  overlay.insert(entry);
+}
+
+  Widget _menuItem(String text, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Text(text, style: const TextStyle(color: Colors.white, fontSize: 14)),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -999,37 +1112,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.more_vert, color: Colors.white),
-                          onPressed: () {
-                            showModalBottomSheet(
-                              context: context,
-                              backgroundColor: Colors.grey[850],
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                              ),
-                              builder: (_) => Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  ListTile(
-                                    leading: const Icon(Icons.add_a_photo_outlined, color: Colors.white),
-                                    title: const Text('Добавить аватар', style: TextStyle(color: Colors.white)),
-                                    onTap: () {},
-                                  ),
-                                  ListTile(
-                                    leading: const Icon(Icons.delete_outline, color: Colors.white),
-                                    title: const Text('Удалить аватар', style: TextStyle(color: Colors.white)),
-                                    onTap: () {},
-                                  ),
-                                  ListTile(
-                                    leading: const Icon(Icons.collections_outlined, color: Colors.white),
-                                    title: const Text('Коллекция аватарок', style: TextStyle(color: Colors.white)),
-                                    onTap: () {},
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
+                        Builder(
+                          builder: (context) => IconButton(
+                            key: _menuIconKey,
+                            icon: const Icon(Icons.more_vert, color: Colors.white),
+                            onPressed: () => _showTopMenu(context),
+                          ),
                         ),
                         IconButton(
                           icon: const Icon(Icons.edit, color: Colors.white),
@@ -1051,6 +1139,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 ),
               ),
             ),
+
 
             // 3) Кнопка «назад» — самый верхний слой
             Positioned(
