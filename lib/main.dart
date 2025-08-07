@@ -867,8 +867,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final ref = FirebaseStorage.instance
         .ref('avatars/${widget.userId}.jpg');
 
-    await ref.putFile(file);
-    return await ref.getDownloadURL();
+    debugPrint('📤 Загружаем в: avatars/${widget.userId}.jpg');
+
+    try {
+      await ref.putFile(file);
+      final url = await ref.getDownloadURL();
+      debugPrint('🔗 Получена ссылка: $url');
+      return url;
+    } catch (e) {
+      debugPrint('❌ Ошибка загрузки файла: $e');
+      rethrow;
+    }
   }
 
 
