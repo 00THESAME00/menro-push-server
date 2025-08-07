@@ -864,22 +864,59 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Future<String> _uploadAvatar(File file) async {
-    final ref = FirebaseStorage.instance
-        .ref('avatars/${widget.userId}.jpg');
+  final ref = FirebaseStorage.instance
+      .ref('avatars/${widget.userId}.jpg');
 
-    debugPrint('📤 Загружаем в: avatars/${widget.userId}.jpg');
+  debugPrint('📤 Загружаем в: avatars/${widget.userId}.jpg');
 
-    try {
-      final bytes = await file.readAsBytes();
-      final uploadTask = await ref.putData(bytes);
-      final url = await ref.getDownloadURL();
-      debugPrint('🔗 Получена ссылка: $url');
-      return url;
-    } catch (e) {
-      debugPrint('❌ Ошибка загрузки файла: $e');
-      rethrow;
-    }
+  try {
+    final bytes = await file.readAsBytes();
+    await ref.putData(bytes);
+    final url = await ref.getDownloadURL();
+    debugPrint('🔗 Получена ссылка: $url');
+    return url;
+  } catch (e) {
+    debugPrint('❌ Ошибка загрузки файла: $e');
+    rethrow;
   }
+}
+
+// 👇 Вставь сюда:
+Future<void> _handleAvatarUpload() async {
+  try {
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (picked == null) {
+      debugPrint('📂 Фото не выбрано');
+      return;
+    }
+
+    final file = File(picked.path);
+    debugPrint('📁 Путь к файлу: ${file.path}');
+
+    final downloadUrl = await _uploadAvatar(file);
+    debugPrint('📸 Ссылка на загруженное фото: $downloadUrl');
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.userId)
+        .update({'avatarUrl': downloadUrl});
+    debugPrint('✅ avatarUrl сохранён в Firestore');
+
+    if (!mounted) return;
+    setState(() => avatarUrl = downloadUrl);
+    debugPrint('🔄 avatarUrl обновлён в UI');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Фото успешно загружено')),
+    );
+  } catch (e, stack) {
+    debugPrint('❌ Ошибка загрузки: $e');
+    debugPrint('📛 Стек: $stack');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Ошибка загрузки фото: $e')),
+    );
+  }
+}
 
 
   void _showTopMenu(BuildContext context) {
@@ -913,34 +950,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   children: [
                     _menuItem('📷 Выбрать фотографию', () async {
                       entry.remove();
-
-                      final picker = ImagePicker();
-                      final picked = await picker.pickImage(source: ImageSource.gallery);
-                      if (picked == null) {
-                        debugPrint('📂 Фото не выбрано');
-                        return;
-                      }
-
-                      final file = File(picked.path);
-                      debugPrint('📁 Путь к файлу: ${file.path}');
-
-                      final downloadUrl = await _uploadAvatar(file);
-                      debugPrint('📸 Ссылка на загруженное фото: $downloadUrl');
-
-                      debugPrint('👤 userId: ${widget.userId}');
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(widget.userId)
-                          .update({'avatarUrl': downloadUrl});
-                      debugPrint('✅ avatarUrl сохранён в Firestore');
-
-                      if (!mounted) return;
-                      debugPrint('🔄 avatarUrl обновлён в UI');
-                      setState(() => avatarUrl = downloadUrl);
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Фото успешно загружено')),
-                      );
+                      await _handleAvatarUpload();
                     }),
                     _menuItem('🗑️ Удалить фотографию', () async {
                       entry.remove();
