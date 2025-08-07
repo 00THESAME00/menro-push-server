@@ -870,7 +870,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     debugPrint('📤 Загружаем в: avatars/${widget.userId}.jpg');
 
     try {
-      await ref.putFile(file);
+      final bytes = await file.readAsBytes();
+      final uploadTask = await ref.putData(bytes);
       final url = await ref.getDownloadURL();
       debugPrint('🔗 Получена ссылка: $url');
       return url;
