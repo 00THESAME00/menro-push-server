@@ -823,7 +823,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   String? userName;
   String? userStatus;
   String? aboutMe;
-  String version = '0.2.6';
+  String version = '0.54.3';
 
   @override
   void initState() {
