@@ -33,15 +33,38 @@ class Global {
     }
   }
 
-  static Future<void> initFirebaseMessaging() async {
-    FirebaseMessaging messaging = FirebaseMessaging.instance;
+  static Future<void> initFirebaseMessaging({required String userId}) async {
+    final messaging = FirebaseMessaging.instance;
     await messaging.requestPermission();
+
     final token = await messaging.getToken();
     print("📲 Получен FCM токен: $token");
+
+    if (token == null) {
+      print("⚠️ FCM токен не получен");
+      return;
+    }
+
+    final docRef = FirebaseFirestore.instance.collection('users').doc(userId);
+    final snapshot = await docRef.get();
+    final savedToken = snapshot.data()?['fcmToken'];
+
+    if (savedToken != token) {
+      await docRef.set({'fcmToken': token}, SetOptions(merge: true));
+      print("✅ FCM токен обновлён в Firestore");
+    } else {
+      print("👌 FCM токен актуален, обновление не требуется");
+    }
+
+    messaging.onTokenRefresh.listen((newToken) async {
+      await docRef.set({'fcmToken': newToken}, SetOptions(merge: true));
+      print("🔄 FCM токен обновлён через onTokenRefresh: $newToken");
+    });
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       handlePushMessage(message, fromTap: false);
     });
+
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       handlePushMessage(message, fromTap: true);
     });
@@ -322,7 +345,7 @@ class _EnterYourIdScreenState extends State<EnterYourIdScreen> {
   String? _statusMessage;
   bool _isLoading = false;
   bool _isExistingUser = false;
-  bool _showPassword = false; // ← добавлено для показа пароля
+  bool _showPassword = false;
 
   Future<void> _checkId(String id) async {
     if (id.length != 6) {
@@ -372,7 +395,9 @@ class _EnterYourIdScreenState extends State<EnterYourIdScreen> {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('userId', id);
-    await _saveFcmToken(id);
+
+    // 🔄 Обновление FCM токена через Global
+    await Global.initFirebaseMessaging(userId: id);
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       final data = message.data;
@@ -397,23 +422,6 @@ class _EnterYourIdScreenState extends State<EnterYourIdScreen> {
       context,
       MaterialPageRoute(builder: (_) => ChatListScreen(currentUserId: id)),
     );
-  }
-
-  Future<void> _saveFcmToken(String userId) async {
-    try {
-      final token = await FirebaseMessaging.instance.getToken();
-      if (token != null) {
-        await FirebaseFirestore.instance.collection('users').doc(userId).set(
-          {'fcmToken': token},
-          SetOptions(merge: true),
-        );
-        print("📲 FCM токен сохранён: $token");
-      } else {
-        print("⚠️ Не удалось получить токен");
-      }
-    } catch (e) {
-      print("❌ Ошибка при сохранении FCM токена: $e");
-    }
   }
 
   @override
