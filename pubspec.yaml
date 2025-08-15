@@ -24,6 +24,7 @@ dependencies:
   image_picker: ^1.0.4
 
   flutter_local_notifications: 14.0.1
+  uuid: ^3.0.7   # ✅ Добавлено для генерации sessionId
 
 dev_dependencies:
   flutter_test:
