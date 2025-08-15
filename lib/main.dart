@@ -12,6 +12,11 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'models/message.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -376,6 +381,9 @@ class _EnterYourIdScreenState extends State<EnterYourIdScreen> {
     final docRef = FirebaseFirestore.instance.collection('users').doc(id);
     final snapshot = await docRef.get();
 
+    final sessionId = const Uuid().v4();
+    debugPrint('🆔 Сгенерирован sessionId: $sessionId');
+
     if (snapshot.exists) {
       final stored = snapshot.data();
       if (stored?['password'] != password) {
@@ -385,8 +393,15 @@ class _EnterYourIdScreenState extends State<EnterYourIdScreen> {
         });
         return;
       }
+
+      await docRef.update({'sessionId': sessionId});
+      debugPrint('🔄 Обновлён sessionId для существующего пользователя');
     } else {
-      await docRef.set({'password': password});
+      await docRef.set({
+        'password': password,
+        'sessionId': sessionId,
+      });
+      debugPrint('✅ Создан новый профиль с sessionId');
       setState(() {
         _statusMessage = '✅ Профиль создан';
       });
@@ -394,8 +409,9 @@ class _EnterYourIdScreenState extends State<EnterYourIdScreen> {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('userId', id);
+    await prefs.setString('sessionId', sessionId);
+    debugPrint('💾 sessionId сохранён локально');
 
-    // 🔄 Обновление FCM токена через Global
     await Global.initFirebaseMessaging(userId: id);
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
