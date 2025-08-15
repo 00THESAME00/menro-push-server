@@ -382,6 +382,15 @@ class _EnterYourIdScreenState extends State<EnterYourIdScreen> {
 
     if (snapshot.exists) {
       final stored = snapshot.data();
+
+      if (stored?['access'] == false) {
+        setState(() {
+          _statusMessage = '🚫 Этот профиль заблокирован';
+          _isLoading = false;
+        });
+        return;
+      }
+
       if (stored?['password'] != password) {
         setState(() {
           _statusMessage = '❌ Неверный пароль';
@@ -390,12 +399,19 @@ class _EnterYourIdScreenState extends State<EnterYourIdScreen> {
         return;
       }
 
+      // ✅ Добавляем access: true, если поле отсутствует
+      if (!stored!.containsKey('access')) {
+        await docRef.update({'access': true});
+        debugPrint('🛠️ Добавлено поле access: true для старого профиля');
+      }
+
       await docRef.update({'sessionId': sessionId});
       debugPrint('🔄 Обновлён sessionId для существующего пользователя');
     } else {
       await docRef.set({
         'password': password,
         'sessionId': sessionId,
+        'access': true,
       });
       debugPrint('✅ Создан новый профиль с sessionId');
       setState(() {
@@ -564,6 +580,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
   void initState() {
     super.initState();
     _chatStream = ChatService().getUserChats(widget.currentUserId);
+    _listenToSession(); // 🔐 контроль сессии
   }
 
   void _openChat(ChatEntry chat) {
@@ -573,6 +590,40 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
         builder: (_) => ChatScreen(chat: chat, currentUserId: widget.currentUserId),
       ),
     );
+  }
+
+  void _listenToSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final localSessionId = prefs.getString('sessionId');
+    final userId = widget.currentUserId;
+
+    if (localSessionId == null) {
+      debugPrint('⚠️ sessionId не найден локально');
+      return;
+    }
+
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .snapshots()
+        .listen((snapshot) {
+      final remoteSessionId = snapshot.data()?['sessionId'];
+      if (remoteSessionId == null) {
+        debugPrint('⚠️ sessionId отсутствует в Firestore');
+        return;
+      }
+
+      if (remoteSessionId != localSessionId) {
+        debugPrint('🚫 Сессия перехвачена другим устройством');
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+          (_) => false,
+        );
+      } else {
+        debugPrint('✅ sessionId совпадает, всё ок');
+      }
+    });
   }
 
   void _addNewChat() async {
@@ -842,7 +893,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   String? userName;
   String? userStatus;
   String? aboutMe;
-  String version = '0.54.3';
+  String version = '0.55.0';
 
   @override
   void initState() {
