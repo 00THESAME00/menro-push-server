@@ -1,7 +1,8 @@
 name: manro_msg
 description: A custom Flutter messenger by Emil
 
-publish_to: 'none'
+publish_to: 'none' # локальный проект, не публикуется
+
 version: 1.0.0+1
 
 environment:
@@ -19,12 +20,15 @@ dependencies:
   firebase_core: ^2.25.4
   firebase_auth: ^4.17.3
   cloud_firestore: ^4.13.5
-  firebase_messaging: 14.7.10
+  firebase_messaging: ^14.7.10
+  package_info_plus: ^5.0.1
   firebase_storage: ^11.6.6
   image_picker: ^1.0.4
+  version: 0.56.0+42
 
-  flutter_local_notifications: 14.0.1
-  uuid: ^3.0.7   # ✅ Добавлено для генерации sessionId
+  flutter_local_notifications: ^14.0.1
+  uuid: ^3.0.7
+  url_launcher: ^6.1.10 # ✅ добавлено для ForceUpdateDialog
 
 dev_dependencies:
   flutter_test:

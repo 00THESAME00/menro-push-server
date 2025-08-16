@@ -13,6 +13,8 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:uuid/uuid.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -871,6 +873,114 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
         backgroundColor: Colors.black,
         onPressed: _addNewChat,
         child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+}
+
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _checkVersionFromFirestore();
+  }
+
+  Future<void> _checkVersionFromFirestore() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('app_config')
+          .doc('version')
+          .get();
+
+      final data = snapshot.data();
+      if (data == null) return;
+
+      final minRequiredVersion = data['min_required_version'] as String;
+      final updateUrl = data['update_url'] as String;
+      final updateMessage = data['update_message'] as String;
+
+      final info = await PackageInfo.fromPlatform();
+      final currentVersion = info.version;
+
+      debugPrint('📦 Версия: $currentVersion → Требуется: $minRequiredVersion');
+
+      if (_isVersionLower(currentVersion, minRequiredVersion)) {
+        ForceUpdateDialog.show(
+          context,
+          message: updateMessage,
+          url: updateUrl,
+        );
+      }
+    } catch (e) {
+      debugPrint('❌ Ошибка при проверке версии: $e');
+    }
+  }
+
+  bool _isVersionLower(String current, String required) {
+    final currentParts = current.split('.').map(int.parse).toList();
+    final requiredParts = required.split('.').map(int.parse).toList();
+
+    for (int i = 0; i < requiredParts.length; i++) {
+      final currentPart = i < currentParts.length ? currentParts[i] : 0;
+      final requiredPart = requiredParts[i];
+
+      if (currentPart < requiredPart) return true;
+      if (currentPart > requiredPart) return false;
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: Text('Загрузка...')),
+    );
+  }
+}
+
+// 👇 Диалог обновления
+class ForceUpdateDialog {
+  static void show(BuildContext context, {required String message, required String url}) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        backgroundColor: Colors.grey[850],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: const Text(
+          'Обновление',
+          style: TextStyle(color: Colors.white, fontSize: 20),
+        ),
+        content: Text(
+          message,
+          style: const TextStyle(color: Colors.white70, fontSize: 16),
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4F46E5),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () async {
+              final uri = Uri.parse(url);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Не удалось открыть ссылку')),
+                );
+              }
+            },
+            child: const Text('Скачать', style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }
