@@ -1,10 +1,10 @@
 name: manro_msg
-version: 0.56.0+42
+
 description: A custom Flutter messenger by Emil
 
 publish_to: 'none' # локальный проект, не публикуется
 
-version: 1.0.0+1
+version: 0.56.0+42
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
