@@ -889,7 +889,9 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _checkVersionFromFirestore();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkVersionFromFirestore();
+    });
   }
 
   Future<void> _checkVersionFromFirestore() async {
@@ -900,11 +902,16 @@ class _SplashScreenState extends State<SplashScreen> {
           .get();
 
       final data = snapshot.data();
-      if (data == null) return;
+      debugPrint('📄 Firestore snapshot: $data');
 
-      final minRequiredVersion = data['min_required_version'] as String;
-      final updateUrl = data['update_url'] as String;
-      final updateMessage = data['update_message'] as String;
+      if (data == null) {
+        debugPrint('⚠️ Документ version не найден');
+        return;
+      }
+
+      final minRequiredVersion = data['min_required_version'] as String? ?? '';
+      final updateUrl = data['update_url'] as String? ?? '';
+      final updateMessage = data['update_message'] as String? ?? 'Необходимо обновление';
 
       final info = await PackageInfo.fromPlatform();
       final currentVersion = info.version;
@@ -912,11 +919,14 @@ class _SplashScreenState extends State<SplashScreen> {
       debugPrint('📦 Версия: $currentVersion → Требуется: $minRequiredVersion');
 
       if (_isVersionLower(currentVersion, minRequiredVersion)) {
+        debugPrint('⚠️ Версия устарела — показываем диалог');
         ForceUpdateDialog.show(
           context,
           message: updateMessage,
           url: updateUrl,
         );
+      } else {
+        debugPrint('✅ Версия актуальна — диалог не нужен');
       }
     } catch (e) {
       debugPrint('❌ Ошибка при проверке версии: $e');
@@ -924,12 +934,12 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   bool _isVersionLower(String current, String required) {
-    final currentParts = current.split('.').map(int.parse).toList();
-    final requiredParts = required.split('.').map(int.parse).toList();
+    final currentParts = current.split('.').map(int.tryParse).toList();
+    final requiredParts = required.split('.').map(int.tryParse).toList();
 
     for (int i = 0; i < requiredParts.length; i++) {
-      final currentPart = i < currentParts.length ? currentParts[i] : 0;
-      final requiredPart = requiredParts[i];
+      final currentPart = i < currentParts.length ? currentParts[i] ?? 0 : 0;
+      final requiredPart = requiredParts[i] ?? 0;
 
       if (currentPart < requiredPart) return true;
       if (currentPart > requiredPart) return false;
