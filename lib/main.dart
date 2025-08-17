@@ -289,43 +289,70 @@ class VersionBlocker {
 
   static Future<void> checkAndBlock(BuildContext context) async {
     if (_shouldBlock) {
+      debugPrint('[VersionBlocker] Уже заблокировано, показываем overlay');
       _showOverlay(context);
       return;
     }
 
-    final remote = await FirebaseFirestore.instance
-        .collection('app_config')
-        .doc('version')
-        .get();
+    try {
+      final remote = await FirebaseFirestore.instance
+          .collection('app_config')
+          .doc('version')
+          .get();
 
-    final minVersion = remote['min_required_version'] as String?;
-    final updateUrl = remote['update_url'] as String?;
+      final minVersion = remote['min_required_version'] as String?;
+      final updateUrl = remote['update_url'] as String?;
 
-    if (minVersion == null || updateUrl == null) return;
+      debugPrint('[VersionBlocker] min_required_version из Firebase: $minVersion');
+      debugPrint('[VersionBlocker] update_url из Firebase: $updateUrl');
 
-    final info = await PackageInfo.fromPlatform();
-    final currentVersion = info.version;
+      if (minVersion == null || updateUrl == null) {
+        debugPrint('[VersionBlocker] minVersion или updateUrl == null, выходим');
+        return;
+      }
 
-    final outdated = _isOutdated(currentVersion, minVersion);
-    if (outdated) {
-      _shouldBlock = true;
-      _updateUrl = updateUrl;
-      _showOverlay(context);
+      final info = await PackageInfo.fromPlatform();
+      final currentVersion = info.version;
+
+      debugPrint('[VersionBlocker] Текущая версия приложения: $currentVersion');
+
+      final outdated = _isOutdated(currentVersion, minVersion);
+
+      debugPrint('[VersionBlocker] Сравнение версий: $currentVersion vs $minVersion → outdated = $outdated');
+
+      if (outdated) {
+        _shouldBlock = true;
+        _updateUrl = updateUrl;
+        debugPrint('[VersionBlocker] Версия устарела, показываем overlay');
+        _showOverlay(context);
+      } else {
+        debugPrint('[VersionBlocker] Версия актуальна, ничего не делаем');
+      }
+    } catch (e, stack) {
+      debugPrint('[VersionBlocker] Ошибка при проверке версии: $e');
+      debugPrint(stack.toString());
     }
   }
 
   static bool _isOutdated(String current, String min) {
     final c = current.split('.').map(int.parse).toList();
     final m = min.split('.').map(int.parse).toList();
+
     for (int i = 0; i < m.length; i++) {
       if (c.length <= i || c[i] < m[i]) return true;
       if (c[i] > m[i]) return false;
     }
+
     return false;
   }
 
   static void _showOverlay(BuildContext context) {
-    if (_overlay != null) return;
+    if (_overlay != null) {
+      debugPrint('[VersionBlocker] Overlay уже показан');
+      return;
+    }
+
+    debugPrint('[VersionBlocker] Вставляем overlay');
 
     _overlay = OverlayEntry(
       builder: (_) => Stack(
@@ -343,57 +370,27 @@ class VersionBlocker {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Обновление',
-                    style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
-                  ),
+                  const Text('Обновление', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 12),
-                  const Text(
-                    'Вышла новая версия приложения.',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+                  const Text('Вышла новая версия приложения.', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500), textAlign: TextAlign.center),
                   const SizedBox(height: 6),
-                  const Text(
-                    'Обновите, чтобы продолжить.',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+                  const Text('Обновите, чтобы продолжить.', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500), textAlign: TextAlign.center),
                   const SizedBox(height: 20),
                   GestureDetector(
                     onTap: () async {
-                      if (await canLaunchUrl(Uri.parse(_updateUrl))) {
-                        await launchUrl(Uri.parse(_updateUrl), mode: LaunchMode.externalApplication);
+                      final uri = Uri.parse(_updateUrl);
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      } else {
+                        debugPrint('[VersionBlocker] Не удалось открыть ссылку: $_updateUrl');
                       }
                     },
                     child: Container(
                       width: 282,
                       height: 56,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF4C43EF),
-                        borderRadius: BorderRadius.circular(13),
-                      ),
+                      decoration: BoxDecoration(color: const Color(0xFF4C43EF), borderRadius: BorderRadius.circular(13)),
                       alignment: Alignment.center,
-                      child: const Text(
-                        'Скачать',
-                        style: TextStyle(
-                          fontSize: 25,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
-                      ),
+                      child: const Text('Скачать', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w500, color: Colors.white)),
                     ),
                   ),
                 ],
