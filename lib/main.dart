@@ -13,8 +13,9 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:uuid/uuid.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -281,11 +282,142 @@ void main() async {
   runApp(const MyApp());
 }
 
+class VersionBlocker {
+  static bool _shouldBlock = false;
+  static String _updateUrl = '';
+  static OverlayEntry? _overlay;
+
+  static Future<void> checkAndBlock(BuildContext context) async {
+    if (_shouldBlock) {
+      _showOverlay(context);
+      return;
+    }
+
+    final remote = await FirebaseFirestore.instance
+        .collection('app_config')
+        .doc('version')
+        .get();
+
+    final minVersion = remote['min_required_version'] as String?;
+    final updateUrl = remote['update_url'] as String?;
+
+    if (minVersion == null || updateUrl == null) return;
+
+    final info = await PackageInfo.fromPlatform();
+    final currentVersion = info.version;
+
+    final outdated = _isOutdated(currentVersion, minVersion);
+    if (outdated) {
+      _shouldBlock = true;
+      _updateUrl = updateUrl;
+      _showOverlay(context);
+    }
+  }
+
+  static bool _isOutdated(String current, String min) {
+    final c = current.split('.').map(int.parse).toList();
+    final m = min.split('.').map(int.parse).toList();
+    for (int i = 0; i < m.length; i++) {
+      if (c.length <= i || c[i] < m[i]) return true;
+      if (c[i] > m[i]) return false;
+    }
+    return false;
+  }
+
+  static void _showOverlay(BuildContext context) {
+    if (_overlay != null) return;
+
+    _overlay = OverlayEntry(
+      builder: (_) => Stack(
+        children: [
+          AbsorbPointer(absorbing: true, child: Container(color: Colors.black.withOpacity(0.3))),
+          Center(
+            child: Container(
+              width: 345,
+              height: 242,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF0FF),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Обновление',
+                    style: TextStyle(
+                      fontSize: 25,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Вышла новая версия приложения.',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Обновите, чтобы продолжить.',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  GestureDetector(
+                    onTap: () async {
+                      if (await canLaunchUrl(Uri.parse(_updateUrl))) {
+                        await launchUrl(Uri.parse(_updateUrl), mode: LaunchMode.externalApplication);
+                      }
+                    },
+                    child: Container(
+                      width: 282,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4C43EF),
+                        borderRadius: BorderRadius.circular(13),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'Скачать',
+                        style: TextStyle(
+                          fontSize: 25,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    Overlay.of(context, rootOverlay: true).insert(_overlay!);
+  }
+}
+
 // 1. Welcome Screen
 
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
+  @override
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -349,6 +481,14 @@ class _EnterYourIdScreenState extends State<EnterYourIdScreen> {
   bool _isExistingUser = false;
   bool _showPassword = false;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      VersionBlocker.checkAndBlock(context); // ✅ Проверка версии
+    });
+  }
+
   Future<void> _checkId(String id) async {
     if (id.length != 6) {
       setState(() {
@@ -401,7 +541,6 @@ class _EnterYourIdScreenState extends State<EnterYourIdScreen> {
         return;
       }
 
-      // ✅ Добавляем access: true, если поле отсутствует
       if (!stored!.containsKey('access')) {
         await docRef.update({'access': true});
         debugPrint('🛠️ Добавлено поле access: true для старого профиля');
@@ -583,6 +722,10 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
     super.initState();
     _chatStream = ChatService().getUserChats(widget.currentUserId);
     _listenToSession(); // 🔐 контроль сессии
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      VersionBlocker.checkAndBlock(context); // ✅ Проверка версии
+    });
   }
 
   void _openChat(ChatEntry chat) {
@@ -719,6 +862,7 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
         ),
         child: CircleAvatar(
           radius: 18,
+//ч1
           backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
           backgroundColor: Colors.grey[800],
           child: avatarUrl == null
@@ -878,123 +1022,6 @@ class _ChatListScreenState extends State<ChatListScreen> with TickerProviderStat
   }
 }
 
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
-
-  @override
-  State<SplashScreen> createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkVersionFromFirestore();
-    });
-  }
-
-  Future<void> _checkVersionFromFirestore() async {
-    try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('app_config')
-          .doc('version')
-          .get();
-
-      final data = snapshot.data();
-      debugPrint('📄 Firestore snapshot: $data');
-
-      if (data == null) {
-        debugPrint('⚠️ Документ version не найден');
-        return;
-      }
-
-      final minRequiredVersion = data['min_required_version'] as String? ?? '';
-      final updateUrl = data['update_url'] as String? ?? '';
-      final updateMessage = data['update_message'] as String? ?? 'Необходимо обновление';
-
-      final info = await PackageInfo.fromPlatform();
-      final currentVersion = info.version;
-
-      debugPrint('📦 Версия: $currentVersion → Требуется: $minRequiredVersion');
-
-      if (_isVersionLower(currentVersion, minRequiredVersion)) {
-        debugPrint('⚠️ Версия устарела — показываем диалог');
-        ForceUpdateDialog.show(
-          context,
-          message: updateMessage,
-          url: updateUrl,
-        );
-      } else {
-        debugPrint('✅ Версия актуальна — диалог не нужен');
-      }
-    } catch (e) {
-      debugPrint('❌ Ошибка при проверке версии: $e');
-    }
-  }
-
-  bool _isVersionLower(String current, String required) {
-    final currentParts = current.split('.').map(int.tryParse).toList();
-    final requiredParts = required.split('.').map(int.tryParse).toList();
-
-    for (int i = 0; i < requiredParts.length; i++) {
-      final currentPart = i < currentParts.length ? currentParts[i] ?? 0 : 0;
-      final requiredPart = requiredParts[i] ?? 0;
-
-      if (currentPart < requiredPart) return true;
-      if (currentPart > requiredPart) return false;
-    }
-    return false;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('Загрузка...')),
-    );
-  }
-}
-
-// 👇 Диалог обновления
-class ForceUpdateDialog {
-  static void show(BuildContext context, {required String message, required String url}) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        backgroundColor: Colors.grey[850],
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: const Text(
-          'Обновление',
-          style: TextStyle(color: Colors.white, fontSize: 20),
-        ),
-        content: Text(
-          message,
-          style: const TextStyle(color: Colors.white70, fontSize: 16),
-        ),
-        actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4F46E5),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            onPressed: () async {
-              final uri = Uri.parse(url);
-              if (await canLaunchUrl(uri)) {
-                await launchUrl(uri, mode: LaunchMode.externalApplication);
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Не удалось открыть ссылку')),
-                );
-              }
-            },
-            child: const Text('Скачать', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class UserProfileScreen extends StatefulWidget {
   final String userId;
