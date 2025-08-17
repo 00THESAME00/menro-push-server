@@ -24,8 +24,8 @@ android {
         applicationId = "com.example.manro_msg"
         minSdk = 21
         targetSdk = 35
-        versionCode flutterVersionCode.toInteger()
-        versionName flutterVersionName
+        versionCode = 1
+        versionName = "0.56.0"
     }
 
     signingConfigs {
