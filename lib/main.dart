@@ -388,7 +388,7 @@ class VersionBlocker {
                       style: TextStyle(
                         fontSize: 25,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF000000),
+                        color: Color(0xFFEFF0FF),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -412,31 +412,42 @@ class VersionBlocker {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 20),
-                    InkWell(
-                      onTap: () async {
-                        final uri = Uri.parse(_updateUrl);
-                        if (await canLaunchUrl(uri)) {
-                          await launchUrl(uri, mode: LaunchMode.externalApplication);
-                        } else {
-                          debugPrint('[VersionBlocker] Не удалось открыть ссылку: $_updateUrl');
-                        }
-                      },
+                    Material(
+                      color: Colors.transparent,
                       borderRadius: BorderRadius.circular(13),
-                      splashColor: Colors.white.withOpacity(0.2),
-                      child: Ink(
-                        width: 282,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF4C43EF),
-                          borderRadius: BorderRadius.circular(13),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            'Скачать',
-                            style: TextStyle(
-                              fontSize: 25,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFFEFF0FF),
+                      child: InkWell(
+                        onTap: () async {
+                          try {
+                            final uri = Uri.parse(_updateUrl);
+                            final canLaunch = await canLaunchUrl(uri);
+                            debugPrint('[VersionBlocker] canLaunch = $canLaunch');
+
+                            if (canLaunch) {
+                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            } else {
+                              debugPrint('[VersionBlocker] Не удалось открыть ссылку: $_updateUrl');
+                            }
+                          } catch (e) {
+                            debugPrint('[VersionBlocker] Ошибка при открытии ссылки: $e');
+                          }
+                        },
+                        borderRadius: BorderRadius.circular(13),
+                        splashColor: Colors.white.withOpacity(0.2),
+                        child: Ink(
+                          width: 282,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4C43EF),
+                            borderRadius: BorderRadius.circular(13),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'Скачать',
+                              style: TextStyle(
+                                fontSize: 25,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFFEFF0FF),
+                              ),
                             ),
                           ),
                         ),
@@ -446,7 +457,7 @@ class VersionBlocker {
                 ),
               ),
             ),
-          ),
+          )
         ],
       ),
     );
