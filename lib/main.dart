@@ -354,46 +354,96 @@ class VersionBlocker {
 
     debugPrint('[VersionBlocker] Вставляем overlay');
 
+    final controller = ValueNotifier<double>(0.8);
+
     _overlay = OverlayEntry(
       builder: (_) => Stack(
         children: [
           AbsorbPointer(absorbing: true, child: Container(color: Colors.black.withOpacity(0.3))),
           Center(
-            child: Container(
-              width: 345,
-              height: 242,
-              decoration: BoxDecoration(
-                color: const Color(0xFFEFF0FF),
-                borderRadius: BorderRadius.circular(24),
+            child: AnimatedBuilder(
+              animation: controller,
+              builder: (context, child) => Transform.scale(
+                scale: controller.value,
+                child: child,
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Обновление', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 12),
-                  const Text('Вышла новая версия приложения.', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500), textAlign: TextAlign.center),
-                  const SizedBox(height: 6),
-                  const Text('Обновите, чтобы продолжить.', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500), textAlign: TextAlign.center),
-                  const SizedBox(height: 20),
-                  GestureDetector(
-                    onTap: () async {
-                      final uri = Uri.parse(_updateUrl);
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri, mode: LaunchMode.externalApplication);
-                      } else {
-                        debugPrint('[VersionBlocker] Не удалось открыть ссылку: $_updateUrl');
-                      }
-                    },
-                    child: Container(
-                      width: 282,
-                      height: 56,
-                      decoration: BoxDecoration(color: const Color(0xFF4C43EF), borderRadius: BorderRadius.circular(13)),
-                      alignment: Alignment.center,
-                      child: const Text('Скачать', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w500, color: Colors.white)),
-                    ),
+              child: Container(
+                width: 345,
+                height: 242,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF171719),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: const Color(0xFFC5C6D9),
+                    width: 2,
+                    strokeAlign: BorderSide.strokeAlignOutside,
                   ),
-                ],
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Обновление',
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF000000),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Вышла новая версия приложения.',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFFEFF0FF),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Обновите, чтобы продолжить.',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFFEFF0FF),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    InkWell(
+                      onTap: () async {
+                        final uri = Uri.parse(_updateUrl);
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        } else {
+                          debugPrint('[VersionBlocker] Не удалось открыть ссылку: $_updateUrl');
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(13),
+                      splashColor: Colors.white.withOpacity(0.2),
+                      child: Ink(
+                        width: 282,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF4C43EF),
+                          borderRadius: BorderRadius.circular(13),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'Скачать',
+                            style: TextStyle(
+                              fontSize: 25,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFFEFF0FF),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -402,6 +452,11 @@ class VersionBlocker {
     );
 
     Overlay.of(context, rootOverlay: true).insert(_overlay!);
+
+    // Запускаем анимацию появления
+    Future.delayed(const Duration(milliseconds: 50), () {
+      controller.value = 1.0;
+    });
   }
 }
 
