@@ -392,18 +392,16 @@ class VersionBlocker {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Expanded(
-                      child: Text(
-                        'Вышла новая версия приложения. Обновите, чтобы продолжить.',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.normal,
-                          color: Color(0xFFEFF0FF),
-                        ),
-                        textAlign: TextAlign.left,
-                        softWrap: true,
-                        overflow: TextOverflow.visible,
+                    const Text(
+                      'Вышла новая версия приложения.\nОбновите, чтобы продолжить.',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal,
+                        color: Color(0xFFEFF0FF),
+                        height: 1.4,
                       ),
+                      textAlign: TextAlign.center,
+                      softWrap: true,
                     ),
                     const SizedBox(height: 20),
                     Material(
