@@ -359,8 +359,11 @@ class VersionBlocker {
     _overlay = OverlayEntry(
       builder: (_) => Stack(
         children: [
-          AbsorbPointer(absorbing: true, child: Container(color: Colors.black.withOpacity(0.3))),
-          Center(
+          AbsorbPointer(absorbing: true, child: Container(color: Colors.black.withOpacity(0.1))),
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.15, // поднято выше
+            left: 0,
+            right: 0,
             child: AnimatedBuilder(
               animation: controller,
               builder: (context, child) => Transform.scale(
@@ -368,8 +371,8 @@ class VersionBlocker {
                 child: child,
               ),
               child: Container(
-                width: 345,
-                height: 242,
+                width: 326,
+                height: 227, // уменьшено по Y на 15px
                 decoration: BoxDecoration(
                   color: const Color(0xFF171719),
                   borderRadius: BorderRadius.circular(24),
@@ -426,7 +429,7 @@ class VersionBlocker {
                         borderRadius: BorderRadius.circular(13),
                         splashColor: Colors.white.withOpacity(0.2),
                         child: Ink(
-                          width: 282,
+                          width: 263,
                           height: 56,
                           decoration: BoxDecoration(
                             color: const Color(0xFF4C43EF),
