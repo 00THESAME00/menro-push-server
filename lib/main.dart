@@ -361,7 +361,7 @@ class VersionBlocker {
         children: [
           AbsorbPointer(absorbing: true, child: Container(color: Colors.black.withOpacity(0.1))),
           Positioned(
-            top: MediaQuery.of(context).size.height * 0.20, // чтоб делать ниже
+            top: MediaQuery.of(context).size.height * 0.25, // чтоб делать ниже
             left: 0,
             right: 0,
             child: AnimatedBuilder(
