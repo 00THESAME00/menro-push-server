@@ -386,25 +386,29 @@ class VersionBlocker {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
-                        'Обновление',
-                        style: TextStyle(
-                          fontSize: 25,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFFEFF0FF),
+                      const ExcludeSemantics(
+                        child: Text(
+                          'Обновление',
+                          style: TextStyle(
+                            fontSize: 25,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFFEFF0FF),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
-                      const Text(
-                        'Вышла новая версия приложения.\nОбновите, чтобы продолжить.',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.normal,
-                          color: Color(0xFFEFF0FF),
-                          height: 1.4,
+                      const ExcludeSemantics(
+                        child: Text(
+                          'Вышла новая версия приложения.\nОбновите, чтобы продолжить.',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.normal,
+                            color: Color(0xFFEFF0FF),
+                            height: 1.4,
+                          ),
+                          textAlign: TextAlign.center,
+                          softWrap: true,
                         ),
-                        textAlign: TextAlign.center,
-                        softWrap: true,
                       ),
                       const SizedBox(height: 20),
                       Material(
