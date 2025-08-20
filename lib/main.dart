@@ -371,7 +371,7 @@ class VersionBlocker {
                   child: child,
                 ),
                 child: Container(
-                  width: 300,
+                  width: 325,
                   height: 227, // уменьшено по Y на 15px
                   decoration: BoxDecoration(
                     color: const Color(0xFF171719),
